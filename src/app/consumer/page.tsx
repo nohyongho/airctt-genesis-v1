@@ -48,7 +48,10 @@ export default function MarketplaceMain() {
       <main className="max-w-md mx-auto p-4 space-y-8">
 
         {/* Hero Banner (Event) */}
-        <section className="relative h-48 rounded-2xl overflow-hidden shadow-lg cursor-pointer transform transition hover:scale-[1.02]">
+        <section
+          className="relative h-48 rounded-2xl overflow-hidden shadow-lg cursor-pointer transform transition hover:scale-[1.02]"
+          onClick={() => router.push('/consumer/ar')}
+        >
           <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600" />
           <div className="absolute inset-0 flex flex-col justify-center p-6 text-white">
             <span className="bg-white/20 w-fit px-2 py-1 rounded text-xs font-bold mb-2 backdrop-blur-sm">Real-time Event</span>
