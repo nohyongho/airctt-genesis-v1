@@ -183,6 +183,14 @@ export default function AIBunnyAssistant({ userType }: AIBunnyAssistantProps) {
                   className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/10"
                 >
                   <Button
+                    onClick={() => {
+                      if (userType === 'merchant') {
+                        // Dynamically imported router for navigation
+                        window.location.href = '/merchant/ai-assistant';
+                      } else {
+                        alert('아직 준비 중인 기능입니다! (상점주 전용)');
+                      }
+                    }}
                     className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 text-xs sm:text-sm"
                     size="sm"
                   >

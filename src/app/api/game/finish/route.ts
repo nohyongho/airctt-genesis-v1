@@ -34,7 +34,34 @@ export async function POST(request: Request) {
 
         // 2. If success, Generate Reward (MVP Logic: Fixed Reward for now)
         // In a real app, this would be a sophisticated probability logic
+        // 2. If success, Generate Reward (MVP Logic: Fixed Reward for now)
+        // In a real app, this would be a sophisticated probability logic
         if (success) {
+            // --- CRM INTEGRATION START ---
+            // Find a target merchant (For Demo: First Playable Merchant)
+            const { data: merchant } = await client
+                .from('merchants')
+                .select('id')
+                .limit(1)
+                .single();
+
+            if (merchant) {
+                // Import dynamically to avoid top-level issues if any
+                const { registerCustomerInteraction } = await import('@/lib/crm-service');
+
+                await registerCustomerInteraction({
+                    merchant_id: merchant.id,
+                    consumer_id: client_info?.consumer_id || '00000000-0000-0000-0000-000000000000', // Infer from session or body
+                    touchpoint_type: 'COUPON_GAME',
+                    data: {
+                        amount: 0, // No spend, just game
+                        coupon_id: 'demo-coupon'
+                    }
+                });
+                console.log(`[Game API] CRM Interaction Recorded for Merchant ${merchant.id}`);
+            }
+            // --- CRM INTEGRATION END ---
+
             // Example Reward: 90% Discount Coupon Chance or Points
             // Let's create a reward record.
             const rewardPayload = {
