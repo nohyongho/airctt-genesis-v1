@@ -50,7 +50,7 @@ export default function MarketplaceMain() {
         {/* Hero Banner (Event) */}
         <section
           className="relative h-48 rounded-2xl overflow-hidden shadow-lg cursor-pointer transform transition hover:scale-[1.02]"
-          onClick={() => router.push('/consumer/ar')}
+          onClick={() => router.push('/consumer/game')}
         >
           <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600" />
           <div className="absolute inset-0 flex flex-col justify-center p-6 text-white">
