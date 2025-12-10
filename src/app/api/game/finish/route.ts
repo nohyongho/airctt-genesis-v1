@@ -32,63 +32,89 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: updateError.message }, { status: 500 });
         }
 
-        // 2. If success, Generate Reward (MVP Logic: Fixed Reward for now)
-        // In a real app, this would be a sophisticated probability logic
-        // 2. If success, Generate Reward (MVP Logic: Fixed Reward for now)
-        // In a real app, this would be a sophisticated probability logic
+        // 2. If success, Generate Reward & Issue Coupon (Master Schema Integration)
         if (success) {
-            // --- CRM INTEGRATION START ---
-            // Find a target merchant (For Demo: First Playable Merchant)
+            // A. Find a target merchant (For Demo: First Playable Merchant)
             const { data: merchant } = await client
                 .from('merchants')
                 .select('id')
                 .limit(1)
                 .single();
 
-            if (merchant) {
-                // Import dynamically to avoid top-level issues if any
-                const { registerCustomerInteraction } = await import('@/lib/crm-service');
-
-                await registerCustomerInteraction({
-                    merchant_id: merchant.id,
-                    consumer_id: client_info?.consumer_id || '00000000-0000-0000-0000-000000000000', // Infer from session or body
-                    touchpoint_type: 'COUPON_GAME',
-                    data: {
-                        amount: 0, // No spend, just game
-                        coupon_id: 'demo-coupon'
-                    }
-                });
-                console.log(`[Game API] CRM Interaction Recorded for Merchant ${merchant.id}`);
+            if (!merchant) {
+                console.error('No merchant found for reward');
+                return NextResponse.json({ success: true, message: 'No merchant found' });
             }
-            // --- CRM INTEGRATION END ---
 
-            // Example Reward: 90% Discount Coupon Chance or Points
-            // Let's create a reward record.
-            const rewardPayload = {
-                game_session_id: session_id,
-                reward_type: 'COUPON_90', // or 'POINT_1000'
-                reward_value: 90,
-            };
-
-            const { data: rewardData, error: rewardError } = await client
-                .from('game_rewards')
-                .insert(rewardPayload)
-                .select('id, reward_type, reward_value')
+            // B. Find a valid Coupon to Issue
+            const { data: coupon } = await client
+                .from('coupons')
+                .select('id, title, discount_value, discount_type')
+                .eq('merchant_id', merchant.id)
+                .limit(1)
                 .single();
 
-            if (rewardError) {
-                console.error('Error creating reward:', rewardError);
-                return NextResponse.json({ error: rewardError.message }, { status: 500 });
+            // Fallback if no coupon exists (Create dynamic or skip)
+            // For stability, we assume at least one coupon exists or we skip issue
+            let issueId = null;
+
+            if (coupon) {
+                // C. CRM & Coupon Issue
+                const userId = client_info?.consumer_id || '00000000-0000-0000-0000-000000000000';
+
+                // 1. CRM Interaction
+                const { registerCustomerInteraction } = await import('@/lib/crm-service');
+                await registerCustomerInteraction({
+                    merchant_id: merchant.id,
+                    consumer_id: userId,
+                    touchpoint_type: 'COUPON_GAME',
+                    data: {
+                        amount: 0,
+                        coupon_id: coupon.id
+                    }
+                });
+
+                // 2. Insert into coupon_issues (The Critical Fix)
+                const { data: issueData, error: issueError } = await client
+                    .from('coupon_issues')
+                    .insert({
+                        coupon_id: coupon.id,
+                        user_id: userId,
+                        issued_from: 'event',
+                        issued_at: new Date().toISOString(),
+                        is_used: false
+                    })
+                    .select('id')
+                    .single();
+
+                if (issueError) {
+                    console.error('Error issuing coupon:', issueError);
+                    // Explicitly return success: false as requested
+                    return NextResponse.json({
+                        success: false,
+                        error: issueError.message,
+                        details: 'DB Insert Failed. Check RLS policies.'
+                    }, { status: 500 });
+                }
+
+                issueId = issueData.id;
+                console.log(`[Game API] Coupon Issued: ${issueId} for User ${userId}`);
+            } else {
+                console.warn('[Game API] No active coupon found to issue.');
+                // If no coupon found, we might want to return false or just success with no issue_id
+                // Responding success: true regarding 'Game Finished' but issue_id: null
             }
 
             return NextResponse.json({
-                reward_id: rewardData.id,
-                reward_type: rewardData.reward_type,
-                reward_value: rewardData.reward_value
+                success: true,
+                reward_type: 'COUPON',
+                reward_value: coupon ? coupon.discount_value : 0,
+                coupon_title: coupon ? coupon.title : 'Lucky Coupon',
+                issue_id: issueId
             });
         }
 
-        // If failed or no reward logic triggered
+        // If failed
         return NextResponse.json({
             message: 'Game finished, no reward generated.',
             success: false
