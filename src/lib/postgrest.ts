@@ -1,8 +1,8 @@
 import { PostgrestClient } from "@supabase/postgrest-js";
 
-const POSTGREST_URL = process.env.POSTGREST_URL || "";
+const POSTGREST_URL = process.env.POSTGREST_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const POSTGREST_SCHEMA = process.env.POSTGREST_SCHEMA || "public";
-const POSTGREST_API_KEY = process.env.POSTGREST_API_KEY || "";
+const POSTGREST_API_KEY = process.env.POSTGREST_API_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 export function createPostgrestClient(token?: string) {
   const client = new PostgrestClient(POSTGREST_URL, {
