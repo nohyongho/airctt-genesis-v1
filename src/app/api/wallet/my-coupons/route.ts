@@ -50,21 +50,21 @@ export async function GET(request: Request) {
             .from('coupon_issues')
             .select(`
         id,
-        status,
+        is_used,
         issued_at,
         coupons!inner (
           title,
           description,
           discount_value,
-          valid_until,
+          valid_to,
           merchants ( name )
         )
       `)
-            .eq('consumer_id', consumerKey) // Use the detected ID
+            .or(`user_id.eq.${consumerKey},user_id.eq.00000000-0000-0000-0000-000000000000`) // Allow seeing both MyID and DefaultID coupons
             .order('issued_at', { ascending: false });
 
         if (error) {
-            // If error is "JWT expired" or similar, front end should handle logout.
+            console.error('Wallet Query Error:', error);
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -73,8 +73,8 @@ export async function GET(request: Request) {
             title: issue.coupons.title,
             description: issue.coupons.description,
             brand: issue.coupons.merchants?.name || 'Unknown Brand',
-            status: issue.status.toLowerCase() === 'issued' ? 'available' : issue.status.toLowerCase(),
-            expiresAt: issue.coupons.valid_until,
+            status: !issue.is_used ? 'available' : 'used', // Map boolean exists
+            expiresAt: issue.coupons.valid_to,
             imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200',
             discountRate: issue.coupons.discount_value,
         }));
