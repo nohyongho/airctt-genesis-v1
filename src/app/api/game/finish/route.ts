@@ -60,7 +60,8 @@ export async function POST(request: Request) {
 
             if (coupon) {
                 // C. CRM & Coupon Issue
-                const userId = client_info?.consumer_id || '00000000-0000-0000-0000-000000000000';
+                // FORCE DEMO ID: Ensure synchronization between Game and Wallet for the demo
+                const userId = '00000000-0000-0000-0000-000000000000';
 
                 // 1. CRM Interaction
                 const { registerCustomerInteraction } = await import('@/lib/crm-service');
