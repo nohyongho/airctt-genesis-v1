@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRCTT - AI Reality CouponTalkTalk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;600;700;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #0a0a0a; color: #fff; overflow-x: hidden; }
+        h1, h2, h3, .logo { font-family: 'Orbitron', sans-serif; }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        .content { position: relative; z-index: 1; }
+        .neon-text { text-shadow: 0 0 10px rgba(168,85,247,0.8), 0 0 20px rgba(168,85,247,0.6), 0 0 30px rgba(168,85,247,0.4); }
+        .neon-cyan { text-shadow: 0 0 10px rgba(34,211,238,0.8), 0 0 20px rgba(34,211,238,0.6); }
+        .neon-gold { text-shadow: 0 0 10px rgba(251,191,36,0.8), 0 0 20px rgba(251,191,36,0.6); }
+        .glow-border { box-shadow: 0 0 20px rgba(168,85,247,0.3), inset 0 0 20px rgba(168,85,247,0.1); }
+        .glow-border-cyan { box-shadow: 0 0 20px rgba(34,211,238,0.3), inset 0 0 20px rgba(34,211,238,0.1); }
+        .glow-border-gold { box-shadow: 0 0 20px rgba(251,191,36,0.3), inset 0 0 20px rgba(251,191,36,0.1); }
+        .grid-bg { background-image: linear-gradient(rgba(168,85,247,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,0.1) 1px, transparent 1px); background-size: 50px 50px; }
+        .feature-card { transition: all 0.4s; backdrop-filter: blur(10px); }
+        .feature-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 0 40px rgba(168,85,247,0.6); }
+        .stats-number { font-family: 'Orbitron'; font-size: 3rem; font-weight: 900; background: linear-gradient(135deg, #a855f7, #22d3ee, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        section { min-height: 100vh; padding: 100px 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .modal.active { display: flex; }
+        .modal-content { background: linear-gradient(135deg, #1a0a2e, #0a0a1a); border: 2px solid rgba(168,85,247,0.5); border-radius: 1.5rem; padding: 2rem; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #888; }
+        .modal-close:hover { color: white; }
+        .page-view { display: none; position: fixed; inset: 0; background: #0a0a0a; z-index: 500; overflow-y: auto; }
+        .page-view.active { display: block; }
+        .coupon-card { background: rgba(26,10,46,0.8); border: 2px dashed; border-radius: 1rem; padding: 1rem; cursor: pointer; transition: all 0.3s; position: relative; }
+        .coupon-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(168,85,247,0.4); }
+        .coupon-card.common { border-color: #9ca3af; }
+        .coupon-card.rare { border-color: #3b82f6; }
+        .coupon-card.epic { border-color: #a855f7; }
+        .coupon-card.legendary { border-color: #f59e0b; }
+        .coupon-card.mythic { border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.3); }
+        .rarity-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; }
+        .rarity-badge.common { background: rgba(156,163,175,0.3); color: #9ca3af; }
+        .rarity-badge.rare { background: rgba(59,130,246,0.3); color: #3b82f6; }
+        .rarity-badge.epic { background: rgba(168,85,247,0.3); color: #a855f7; }
+        .rarity-badge.legendary { background: rgba(245,158,11,0.3); color: #f59e0b; }
+        .rarity-badge.mythic { background: rgba(239,68,68,0.3); color: #ef4444; }
+        #game-container { position: fixed; inset: 0; z-index: 600; display: none; background: linear-gradient(180deg, #0a0a2e, #1a0a3e, #0a0a1e); }
+        #game-container.active { display: block; }
+        .falling-coupon { position: absolute; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 0.75rem; cursor: pointer; transition: transform 0.1s; user-select: none; }
+        .falling-coupon:hover { transform: scale(1.3); }
+        .falling-coupon.common { background: rgba(156,163,175,0.4); border: 2px solid #9ca3af; }
+        .falling-coupon.rare { background: rgba(59,130,246,0.4); border: 2px solid #3b82f6; }
+        .falling-coupon.epic { background: rgba(168,85,247,0.4); border: 2px solid #a855f7; }
+        .falling-coupon.legendary { background: rgba(245,158,11,0.4); border: 2px solid #f59e0b; box-shadow: 0 0 15px rgba(245,158,11,0.5); }
+        .falling-coupon.mythic { background: rgba(239,68,68,0.4); border: 2px solid #ef4444; box-shadow: 0 0 25px rgba(239,68,68,0.6); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #22d3ee); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; border: 2px solid rgba(168,85,247,0.5); }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(168,85,247,0.3); padding: 0 1rem; }
+        .btn-primary { background: linear-gradient(135deg, #a855f7, #6366f1); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: bold; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(168,85,247,0.4); }
+        .input-field { width: 100%; background: rgba(30,20,50,0.8); border: 1px solid rgba(168,85,247,0.3); border-radius: 0.5rem; padding: 0.75rem 1rem; color: white; }
+        .input-field:focus { outline: none; border-color: #a855f7; }
+        .delete-btn { position: absolute; top: 0.5rem; right: 0.5rem; width: 28px; height: 28px; background: rgba(239,68,68,0.3); border: 1px solid #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: all 0.3s; color: #ef4444; font-size: 1rem; }
+        .coupon-card:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { background: #ef4444; color: white; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(168,85,247,0.9); color: white; padding: 1rem 2rem; border-radius: 1rem; z-index: 2000; display: none; }
+        .toast.active { display: block; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .pulse-glow { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(168,85,247,0.4); } 50% { box-shadow: 0 0 40px rgba(168,85,247,0.8); } }
+    </style>
+</head>
+<body class="grid-bg">
+    <!-- 네비게이션 바 -->
+    <nav class="top-nav">
+        <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
+            <div class="flex items-center gap-6">
+                <a href="#" onclick="goHome()" class="flex items-center gap-2">
+                    <span class="text-2xl">🐰</span>
+                    <span class="logo text-xl font-bold neon-text">AIRCTT</span>
+                </a>
+                <div class="hidden md:flex items-center gap-4">
+                    <a href="#" onclick="goHome()" class="px-3 py-2 hover:text-purple-400">홈</a>
+                    <a href="#" onclick="openWallet()" class="px-3 py-2 hover:text-purple-400">💰 쿠폰지갑</a>
+                    <a href="#" onclick="startGame()" class="px-3 py-2 hover:text-purple-400">🎮 게임</a>
+                    <a href="#" onclick="openStoreList()" class="px-3 py-2 hover:text-purple-400">🏪 매장</a>
+                </div>
+            </div>
+            <div id="nav-user" class="flex items-center gap-3">
+                <button onclick="openLoginModal()" id="login-btn" class="btn-primary text-sm">로그인</button>
+                <div id="user-profile" class="hidden flex items-center gap-3 cursor-pointer" onclick="openProfileModal()">
+                    <div class="user-avatar" id="user-avatar"><span>👤</span></div>
+                    <span id="user-name" class="text-sm">사용자</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="toast" class="toast"></div>
+    <div id="canvas-container"></div>
+    
+    <!-- 메인 콘텐츠 -->
+    <div class="content" id="main-content">
+        <section id="hero" class="min-h-screen">
+            <div class="text-center">
+                <h1 class="text-6xl md:text-8xl font-black neon-text mb-8">AIRCTT</h1>
+                <p class="text-2xl md:text-3xl text-gray-300 mb-4">AI Reality CouponTalkTalk</p>
+                <p class="text-xl text-gray-400 mb-12">숫자가 아닌 사람을 지키는 메타버스 경제 OS</p>
+                <div class="flex gap-4 justify-center flex-wrap mb-12">
+                    <button onclick="startGame()" class="pulse-glow border-2 border-purple-500 bg-purple-500/20 hover:bg-purple-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all hover:scale-105">🎮 쿠폰 사냥 게임</button>
+                    <button onclick="openWallet()" class="glow-border-cyan border-2 border-cyan-500 bg-cyan-500/20 hover:bg-cyan-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all hover:scale-105">💰 쿠폰 지갑</button>
+                </div>
+                <div class="text-4xl text-purple-400" style="animation: bounce 2s infinite;">↓</div>
+            </div>
+        </section>
+        
+        <section id="features">
+            <div class="max-w-7xl w-full">
+                <h2 class="text-4xl md:text-6xl font-bold neon-text mb-16 text-center">핵심 기술</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="feature-card border-2 border-purple-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">🐰</div>
+                        <h3 class="text-xl font-bold mb-3 text-purple-400">AI 토끼 아바타</h3>
+                        <p class="text-gray-300">AI 도우미가 최적의 쿠폰과 매장을 추천</p>
+                    </div>
+                    <div class="feature-card border-2 border-cyan-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">🎮</div>
+                        <h3 class="text-xl font-bold mb-3 text-cyan-400">AR 게임</h3>
+                        <p class="text-gray-300">증강현실에서 쿠폰을 직접 수집</p>
+                    </div>
+                    <div class="feature-card border-2 border-purple-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">📍</div>
+                        <h3 class="text-xl font-bold mb-3 text-purple-400">LBS 기술</h3>
+                        <p class="text-gray-300">반경·시간·조건 기반 정밀 위치 서비스</p>
+                    </div>
+                    <div class="feature-card border-2 border-cyan-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">🥽</div>
+                        <h3 class="text-xl font-bold mb-3 text-cyan-400">AR/VR</h3>
+                        <p class="text-gray-300">스마트글라스 준비 메타버스 OS 기반</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="download">
+            <div class="max-w-4xl w-full text-center">
+                <h2 class="text-4xl md:text-6xl font-bold neon-text mb-8">지금 시작하세요</h2>
+                <p class="text-xl text-gray-300 mb-12">AIRCTT와 함께 새로운 경제 생태계를 경험하세요</p>
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <div class="glow-border border-2 border-purple-500/30 p-8 rounded-2xl bg-black/40">
+                        <h3 class="text-2xl font-bold mb-6 text-purple-400">소비자용 앱</h3>
+                        <div class="flex flex-col gap-4">
+                            <button onclick="startGame()" class="glow-border border-2 border-purple-500 bg-purple-500/20 hover:bg-purple-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all hover:scale-105">🎮 라이브 쿠폰 (게임)</button>
+                            <button onclick="openWallet()" class="glow-border-cyan border-2 border-cyan-500 bg-cyan-500/20 hover:bg-cyan-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all hover:scale-105">💰 내 쿠폰 지갑</button>
+                        </div>
+                    </div>
+                    <div class="glow-border-gold border-2 border-amber-500/30 p-8 rounded-2xl bg-black/40">
+                        <h3 class="text-2xl font-bold mb-6 text-amber-400">사업자용 시스템</h3>
+                        <div class="flex flex-col gap-4">
+                            <button onclick="openBusinessPage()" class="glow-border-gold border-2 border-amber-500 bg-amber-500/20 hover:bg-amber-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all hover:scale-105">🏪 매장 입점 신청</button>
+                            <button onclick="openBusinessPage()" class="glow-border border-2 border-purple-500 bg-purple-500/20 hover:bg-purple-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all hover:scale-105">💼 관리자 로그인</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glow-border border-2 border-cyan-500/30 p-12 rounded-2xl bg-black/40">
+                    <h3 class="text-2xl font-bold mb-6 text-cyan-400">문의하기</h3>
+                    <a href="mailto:shoh32176@gmail.com" class="block text-xl text-purple-400 hover:text-purple-300 mb-4">📧 shoh32176@gmail.com</a>
+                    <a href="https://airctt.com" class="block text-xl text-cyan-400 hover:text-cyan-300">🌐 www.airctt.com</a>
+                    <div class="flex justify-center gap-6 mt-8">
+                        <a href="#" class="text-4xl hover:scale-110 transition-transform">💼</a>
+                        <a href="#" class="text-4xl hover:scale-110 transition-transform">📘</a>
+                        <a href="#" class="text-4xl hover:scale-110 transition-transform">📷</a>
+                        <a href="#" class="text-4xl hover:scale-110 transition-transform">📺</a>
+                    </div>
+                </div>
+                <p class="mt-12 text-gray-500">© 2024 AIRCTT · Powered by (주)발로레 · All rights reserved</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- 로그인 모달 -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeLoginModal()">✕</span>
+            <div class="text-center mb-8">
+                <span class="text-6xl">🐰</span>
+                <h2 class="text-2xl font-bold mt-4 neon-text">로그인</h2>
+            </div>
+            <div class="space-y-3 mb-6">
+                <button onclick="socialLogin('kakao')" class="w-full py-3 bg-yellow-400 text-black rounded-xl font-bold hover:bg-yellow-300 flex items-center justify-center gap-2">💬 카카오로 시작하기</button>
+                <button onclick="socialLogin('naver')" class="w-full py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-400 flex items-center justify-center gap-2">🟢 네이버로 시작하기</button>
+                <button onclick="socialLogin('google')" class="w-full py-3 bg-white text-gray-800 rounded-xl font-bold hover:bg-gray-100 flex items-center justify-center gap-2">🔵 Google로 시작하기</button>
+            </div>
+            <div class="flex items-center gap-4 my-6">
+                <div class="flex-1 h-px bg-purple-500/30"></div>
+                <span class="text-gray-500 text-sm">또는</span>
+                <div class="flex-1 h-px bg-purple-500/30"></div>
+            </div>
+            <form onsubmit="emailLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-sm text-gray-400 mb-1">이메일</label>
+                    <input type="email" id="login-email" class="input-field" placeholder="example@email.com" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm text-gray-400 mb-1">비밀번호</label>
+                    <input type="password" id="login-password" class="input-field" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="w-full btn-primary py-3">로그인</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 프로필 모달 -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeProfileModal()">✕</span>
+            <div class="text-center mb-8">
+                <div class="relative inline-block">
+                    <div class="user-avatar w-24 h-24 mx-auto text-4xl" id="profile-avatar-preview"><span>👤</span></div>
+                    <label class="absolute bottom-0 right-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-purple-400">
+                        <span>📷</span>
+                        <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
+                    </label>
+                </div>
+                <h2 class="text-2xl font-bold mt-4" id="profile-name">사용자</h2>
+                <p class="text-gray-400" id="profile-email">user@email.com</p>
+            </div>
+            <div class="space-y-4">
+                <button onclick="openWallet(); closeProfileModal();" class="w-full py-3 bg-purple-900/50 border border-purple-500/30 rounded-xl hover:bg-purple-900/70 flex items-center justify-center gap-2">💰 내 쿠폰 지갑</button>
+                <button onclick="startGame(); closeProfileModal();" class="w-full py-3 bg-cyan-900/50 border border-cyan-500/30 rounded-xl hover:bg-cyan-900/70 flex items-center justify-center gap-2">🎮 쿠폰 게임</button>
+                <button onclick="logout()" class="w-full py-3 bg-red-900/50 border border-red-500/30 rounded-xl hover:bg-red-900/70 text-red-400">🚪 로그아웃</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 쿠폰 지갑 페이지 -->
+    <div id="wallet-page" class="page-view">
+        <div class="min-h-screen p-4 pt-20">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <button onclick="closeWallet()" class="text-2xl hover:text-purple-400">← 돌아가기</button>
+                    <h1 class="text-3xl font-bold neon-text">💰 내 쿠폰 지갑</h1>
+                    <button onclick="startGame()" class="btn-primary text-sm">🎮 더 모으기</button>
+                </div>
+                <div class="grid grid-cols-5 gap-3 mb-6" id="wallet-stats"></div>
+                <div class="flex gap-2 mb-6 flex-wrap">
+                    <button onclick="filterWallet('all')" class="px-4 py-2 bg-purple-900/50 border border-purple-500/30 rounded-lg filter-btn active" data-filter="all">전체</button>
+                    <button onclick="filterWallet('common')" class="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg filter-btn" data-filter="common">일반</button>
+                    <button onclick="filterWallet('rare')" class="px-4 py-2 bg-gray-800 border border-blue-500/30 rounded-lg filter-btn" data-filter="rare">레어</button>
+                    <button onclick="filterWallet('epic')" class="px-4 py-2 bg-gray-800 border border-purple-500/30 rounded-lg filter-btn" data-filter="epic">에픽</button>
+                    <button onclick="filterWallet('legendary')" class="px-4 py-2 bg-gray-800 border border-yellow-500/30 rounded-lg filter-btn" data-filter="legendary">전설</button>
+                    <button onclick="filterWallet('mythic')" class="px-4 py-2 bg-gray-800 border border-red-500/30 rounded-lg filter-btn" data-filter="mythic">신화</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="wallet-coupon-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 매장 목록 페이지 -->
+    <div id="store-list-page" class="page-view">
+        <div class="min-h-screen p-4 pt-20">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="closeStoreList()" class="text-2xl hover:text-purple-400">←</button>
+                    <h1 class="text-3xl font-bold neon-text">🏪 주변 매장</h1>
+                </div>
+                <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+                    <button onclick="filterStores('all')" class="px-4 py-2 bg-purple-500/30 border border-purple-500 rounded-full whitespace-nowrap">🍽️ 전체</button>
+                    <button onclick="filterStores('korean')" class="px-4 py-2 bg-gray-800 border border-gray-600 rounded-full whitespace-nowrap hover:border-purple-500">🍚 한식</button>
+                    <button onclick="filterStores('chicken')" class="px-4 py-2 bg-gray-800 border border-gray-600 rounded-full whitespace-nowrap hover:border-purple-500">🍗 치킨</button>
+                    <button onclick="filterStores('bunsik')" class="px-4 py-2 bg-gray-800 border border-gray-600 rounded-full whitespace-nowrap hover:border-purple-500">🍜 분식</button>
+                    <button onclick="filterStores('cafe')" class="px-4 py-2 bg-gray-800 border border-gray-600 rounded-full whitespace-nowrap hover:border-purple-500">☕ 카페</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="store-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 매장 상세 페이지 -->
+    <div id="store-detail-page" class="page-view">
+        <div class="min-h-screen" id="store-detail-content"></div>
+    </div>
+
+    <!-- 사업자 페이지 -->
+    <div id="business-page" class="page-view">
+        <div class="min-h-screen p-4 pt-20">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="closeBusinessPage()" class="text-2xl hover:text-purple-400">←</button>
+                    <div>
+                        <h1 class="text-3xl font-bold neon-gold">👔 사업자 대시보드</h1>
+                        <p class="text-amber-400">아미 한정식</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="glow-border border-2 border-purple-500/30 p-6 rounded-xl bg-black/40 text-center">
+                        <p class="text-sm text-gray-400">오늘 매출</p>
+                        <p class="text-2xl font-bold text-green-400">₩456,000</p>
+                        <p class="text-xs text-gray-500">23건</p>
+                    </div>
+                    <div class="glow-border border-2 border-purple-500/30 p-6 rounded-xl bg-black/40 text-center">
+                        <p class="text-sm text-gray-400">이번 달</p>
+                        <p class="text-2xl font-bold text-purple-400">₩8,750,000</p>
+                        <p class="text-xs text-gray-500">312건</p>
+                    </div>
+                    <div class="glow-border border-2 border-cyan-500/30 p-6 rounded-xl bg-black/40 text-center">
+                        <p class="text-sm text-gray-400">쿠폰 효과</p>
+                        <p class="text-2xl font-bold text-cyan-400">+23%</p>
+                        <p class="text-xs text-green-400">매출 증가</p>
+                    </div>
+                    <div class="glow-border-gold border-2 border-amber-500/30 p-6 rounded-xl bg-black/40 text-center">
+                        <p class="text-sm text-gray-400">평점</p>
+                        <p class="text-2xl font-bold text-yellow-400">⭐ 4.8</p>
+                        <p class="text-xs text-gray-500">328 리뷰</p>
+                    </div>
+                </div>
+                <div class="glow-border border-2 border-purple-500/30 p-6 rounded-xl bg-black/40">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">🎫 발행된 쿠폰</h3>
+                        <button onclick="showToast('새 쿠폰 발행 기능은 준비중입니다!')" class="btn-primary text-sm">+ 새 쿠폰 발행</button>
+                    </div>
+                    <div id="business-coupon-list" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 컨테이너 -->
+    <div id="game-container">
+        <div class="absolute top-4 left-0 right-0 flex justify-center gap-4 z-10 px-4">
+            <div class="bg-black/80 border-2 border-cyan-500/50 rounded-xl px-6 py-3 text-center backdrop-blur-md">
+                <p class="text-xs text-cyan-400">점수</p>
+                <p class="text-2xl font-bold" id="game-score">0</p>
+            </div>
+            <div class="bg-black/80 border-2 border-purple-500/50 rounded-xl px-6 py-3 text-center backdrop-blur-md">
+                <p class="text-xs text-purple-400">수집</p>
+                <p class="text-2xl font-bold" id="game-caught">0</p>
+            </div>
+            <div class="bg-black/80 border-2 border-yellow-500/50 rounded-xl px-6 py-3 text-center backdrop-blur-md">
+                <p class="text-xs text-yellow-400">콤보</p>
+                <p class="text-2xl font-bold" id="game-combo">x0</p>
+            </div>
+            <div class="bg-black/80 border-2 border-red-500/50 rounded-xl px-6 py-3 text-center backdrop-blur-md">
+                <p class="text-xs text-red-400">시간</p>
+                <p class="text-2xl font-bold" id="game-time">60</p>
+            </div>
+        </div>
+        <div id="game-ready" class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-20">
+            <span class="text-9xl mb-6" style="animation: bounce 1s infinite;">🐰</span>
+            <h2 class="text-4xl font-bold neon-text mb-4">쿠폰 사냥</h2>
+            <p class="text-gray-400 mb-8">떨어지는 쿠폰을 클릭해서 모으세요!</p>
+            <button onclick="beginGame()" class="btn-primary text-xl px-10 py-4">▶ 게임 시작!</button>
+            <button onclick="closeGame()" class="mt-4 text-gray-400 hover:text-white">← 돌아가기</button>
+        </div>
+        <div id="game-over" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 hidden">
+            <span class="text-6xl mb-4">🎉</span>
+            <h2 class="text-3xl font-bold neon-text mb-4">게임 종료!</h2>
+            <div class="glow-border border-2 border-purple-500/30 p-6 rounded-xl bg-black/40 mb-6 text-center">
+                <p class="text-gray-400">최종 점수</p>
+                <p class="text-4xl font-bold text-yellow-400" id="final-score">0</p>
+                <p class="text-gray-400 mt-2">수집한 쿠폰</p>
+                <p class="text-2xl font-bold text-cyan-400" id="final-caught">0</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="beginGame()" class="btn-primary">🔄 다시 하기</button>
+                <button onclick="openWallet(); closeGame();" class="bg-cyan-900/50 border border-cyan-500 px-6 py-3 rounded-xl hover:bg-cyan-900/70">🎫 쿠폰 보기</button>
+            </div>
+            <button onclick="closeGame()" class="mt-4 text-gray-400 hover:text-white">← 홈으로</button>
+        </div>
+        <div id="game-area" class="absolute inset-0"></div>
+    </div>
+
+    <script>
+        const stores = [
+            { id: 1, name: '아미 한정식', category: 'korean', rating: 4.8, reviews: 328, image: '🍚', minOrder: 15000, deliveryFee: 3000, isOpen: true,
+              menu: [{ name: '불고기정식', price: 15000, image: '🥘', desc: '부드러운 불고기와 밑반찬' },{ name: '비빔밥', price: 12000, image: '🍲', desc: '신선한 야채와 고추장' },{ name: '된장찌개정식', price: 13000, image: '🥣', desc: '구수한 된장찌개' }],
+              video: '', coupons: ['common', 'rare', 'epic'] },
+            { id: 2, name: '황금올리브', category: 'chicken', rating: 4.6, reviews: 512, image: '🍗', minOrder: 18000, deliveryFee: 2000, isOpen: true,
+              menu: [{ name: '황금올리브치킨', price: 20000, image: '🍗', desc: '바삭한 올리브치킨' },{ name: '양념치킨', price: 21000, image: '🍗', desc: '달콤 매콤한 양념' }],
+              video: '', coupons: ['common', 'rare'] },
+            { id: 3, name: '분식천국', category: 'bunsik', rating: 4.5, reviews: 245, image: '🍜', minOrder: 10000, deliveryFee: 2500, isOpen: true,
+              menu: [{ name: '떡볶이', price: 5000, image: '🍢', desc: '매콤달콤 떡볶이' },{ name: '순대', price: 6000, image: '🌭', desc: '찹쌀순대' }],
+              video: '', coupons: ['common'] },
+            { id: 4, name: '카페모카', category: 'cafe', rating: 4.7, reviews: 189, image: '☕', minOrder: 8000, deliveryFee: 1500, isOpen: true,
+              menu: [{ name: '아메리카노', price: 4500, image: '☕', desc: '진한 에스프레소' },{ name: '카페라떼', price: 5000, image: '🥛', desc: '부드러운 라떼' }],
+              video: '', coupons: ['rare', 'legendary'] },
+        ];
+        const rarityConfig = {
+            common: { name: '일반', color: '#9ca3af', score: 10, dropRate: 0.70, emoji: '🎫' },
+            rare: { name: '레어', color: '#3b82f6', score: 50, dropRate: 0.20, emoji: '💙' },
+            epic: { name: '에픽', color: '#a855f7', score: 200, dropRate: 0.07, emoji: '💜' },
+            legendary: { name: '전설', color: '#f59e0b', score: 1000, dropRate: 0.025, emoji: '🏆' },
+            mythic: { name: '신화', color: '#ef4444', score: 5000, dropRate: 0.005, emoji: '💎' },
+        };
+        let currentUser = JSON.parse(localStorage.getItem('airctt_user')) || null;
+        let userCoupons = JSON.parse(localStorage.getItem('airctt_coupons')) || [];
+        let gameState = { playing: false, score: 0, caught: 0, combo: 0, time: 60 };
+        let gameInterval = null, spawnInterval = null, currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => { initThree(); checkLoginStatus(); renderWalletStats(); renderWalletCoupons(); renderStoreList(); renderBusinessCoupons(); });
+
+        let scene, camera, renderer, particles, mouseX = 0, mouseY = 0;
+        function initThree() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+            const geometry = new THREE.BufferGeometry();
+            const particleCount = 3000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 30;
+                positions[i + 1] = (Math.random() - 0.5) * 30;
+                positions[i + 2] = (Math.random() - 0.5) * 30;
+                const c = Math.random();
+                if (c > 0.66) { colors[i] = 0.66; colors[i+1] = 0.33; colors[i+2] = 0.97; }
+                else if (c > 0.33) { colors[i] = 0.13; colors[i+1] = 0.83; colors[i+2] = 0.91; }
+                else { colors[i] = 0.98; colors[i+1] = 0.75; colors[i+2] = 0.14; }
+            }
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.07, vertexColors: true, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }));
+            scene.add(particles);
+            animateThree();
+        }
+        function animateThree() { requestAnimationFrame(animateThree); particles.rotation.x += 0.0002; particles.rotation.y += 0.0004; renderer.render(scene, camera); }
+        document.addEventListener('mousemove', e => { mouseX = e.clientX - window.innerWidth/2; mouseY = e.clientY - window.innerHeight/2; });
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+        function checkLoginStatus() {
+            if (currentUser) {
+                document.getElementById('login-btn').classList.add('hidden');
+                document.getElementById('user-profile').classList.remove('hidden');
+                document.getElementById('user-name').textContent = currentUser.name;
+                if (currentUser.avatar) document.getElementById('user-avatar').innerHTML = '<img src="'+currentUser.avatar+'" alt="avatar">';
+            }
+        }
+        function openLoginModal() { document.getElementById('login-modal').classList.add('active'); }
+        function closeLoginModal() { document.getElementById('login-modal').classList.remove('active'); }
+        function socialLogin(provider) {
+            const names = { kakao: '카카오 사용자', naver: '네이버 사용자', google: 'Google 사용자' };
+            currentUser = { id: Date.now(), name: names[provider], email: 'user@'+provider+'.com', avatar: null, provider: provider };
+            localStorage.setItem('airctt_user', JSON.stringify(currentUser));
+            checkLoginStatus(); closeLoginModal(); showToast(names[provider]+'로 로그인되었습니다!');
+        }
+        function emailLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            currentUser = { id: Date.now(), name: email.split('@')[0], email: email, avatar: null, provider: 'email' };
+            localStorage.setItem('airctt_user', JSON.stringify(currentUser));
+            checkLoginStatus(); closeLoginModal(); showToast('로그인되었습니다!');
+        }
+        function logout() {
+            currentUser = null; localStorage.removeItem('airctt_user');
+            document.getElementById('login-btn').classList.remove('hidden');
+            document.getElementById('user-profile').classList.add('hidden');
+            document.getElementById('user-avatar').innerHTML = '<span>👤</span>';
+            closeProfileModal(); showToast('로그아웃되었습니다');
+        }
+        function openProfileModal() {
+            if (!currentUser) return openLoginModal();
+            document.getElementById('profile-name').textContent = currentUser.name;
+            document.getElementById('profile-email').textContent = currentUser.email;
+            if (currentUser.avatar) document.getElementById('profile-avatar-preview').innerHTML = '<img src="'+currentUser.avatar+'" alt="avatar">';
+            document.getElementById('profile-modal').classList.add('active');
+        }
+        function closeProfileModal() { document.getElementById('profile-modal').classList.remove('active'); }
+        function uploadAvatar(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                currentUser.avatar = ev.target.result;
+                localStorage.setItem('airctt_user', JSON.stringify(currentUser));
+                document.getElementById('profile-avatar-preview').innerHTML = '<img src="'+ev.target.result+'" alt="avatar">';
+                document.getElementById('user-avatar').innerHTML = '<img src="'+ev.target.result+'" alt="avatar">';
+                showToast('프로필 사진이 업데이트되었습니다!');
+            };
+            reader.readAsDataURL(file);
+        }
+        function goHome() { document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active')); document.getElementById('game-container').classList.remove('active'); document.getElementById('main-content').style.display = 'block'; window.scrollTo(0, 0); }
+        function openWallet() { document.getElementById('main-content').style.display = 'none'; document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active')); document.getElementById('wallet-page').classList.add('active'); renderWalletStats(); renderWalletCoupons(); }
+        function closeWallet() { document.getElementById('wallet-page').classList.remove('active'); document.getElementById('main-content').style.display = 'block'; }
+        function renderWalletStats() {
+            const stats = { common: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+            userCoupons.forEach(c => stats[c.rarity]++);
+            document.getElementById('wallet-stats').innerHTML = Object.entries(rarityConfig).map(([key, config]) => '<div class="glow-border border border-gray-700 p-3 rounded-xl text-center" style="border-color:'+config.color+'33"><span class="text-2xl">'+config.emoji+'</span><p class="text-xl font-bold" style="color:'+config.color+'">'+stats[key]+'</p><p class="text-xs text-gray-400">'+config.name+'</p></div>').join('');
+        }
+        function renderWalletCoupons() {
+            const filtered = currentFilter === 'all' ? userCoupons : userCoupons.filter(c => c.rarity === currentFilter);
+            if (filtered.length === 0) {
+                document.getElementById('wallet-coupon-list').innerHTML = '<div class="col-span-2 text-center py-12"><span class="text-6xl mb-4 block">🎫</span><p class="text-gray-400 mb-4">수집한 쿠폰이 없어요</p><button onclick="startGame()" class="btn-primary">🎮 게임에서 모으기</button></div>';
+                return;
+            }
+            document.getElementById('wallet-coupon-list').innerHTML = filtered.map((coupon, idx) => {
+                const config = rarityConfig[coupon.rarity];
+                const store = stores.find(s => s.id === coupon.storeId);
+                return '<div class="coupon-card '+coupon.rarity+'" onclick="openStoreDetail('+coupon.storeId+')"><button class="delete-btn" onclick="event.stopPropagation(); deleteCoupon('+idx+')">✕</button><div class="flex items-center justify-between mb-2"><span class="rarity-badge '+coupon.rarity+'">'+config.name+'</span><span class="text-xl">'+config.emoji+'</span></div><h4 class="font-bold text-lg">'+coupon.title+'</h4><p class="text-sm text-gray-400">'+(store ? store.name : '알 수 없는 매장')+'</p><p class="text-xl font-bold text-cyan-400 mt-2">'+coupon.discount+'</p><p class="text-xs text-purple-400 mt-2">👆 클릭하여 매장 방문</p></div>';
+            }).join('');
+        }
+        function filterWallet(filter) { currentFilter = filter; renderWalletCoupons(); }
+        function deleteCoupon(index) { if (confirm('이 쿠폰을 삭제하시겠습니까?')) { userCoupons.splice(index, 1); localStorage.setItem('airctt_coupons', JSON.stringify(userCoupons)); renderWalletStats(); renderWalletCoupons(); showToast('쿠폰이 삭제되었습니다'); } }
+        function openStoreList() { document.getElementById('main-content').style.display = 'none'; document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active')); document.getElementById('store-list-page').classList.add('active'); renderStoreList(); }
+        function closeStoreList() { document.getElementById('store-list-page').classList.remove('active'); document.getElementById('main-content').style.display = 'block'; }
+        function renderStoreList(category) {
+            const filtered = !category || category === 'all' ? stores : stores.filter(s => s.category === category);
+            document.getElementById('store-grid').innerHTML = filtered.map(store => '<div class="glow-border border-2 border-purple-500/30 p-4 rounded-xl bg-black/40 cursor-pointer hover:border-purple-500 transition-all" onclick="openStoreDetail('+store.id+')"><div class="flex items-center gap-4"><span class="text-5xl">'+store.image+'</span><div class="flex-1"><h3 class="font-bold text-lg">'+store.name+'</h3><p class="text-sm text-yellow-400">⭐ '+store.rating+' ('+store.reviews+')</p><p class="text-xs text-gray-400">최소주문 ₩'+store.minOrder.toLocaleString()+' • 배달비 ₩'+store.deliveryFee.toLocaleString()+'</p></div>'+(store.isOpen ? '<span class="text-green-400 text-xs">● 영업중</span>' : '<span class="text-red-400 text-xs">● 영업종료</span>')+'</div></div>').join('');
+        }
+        function filterStores(category) { renderStoreList(category); }
+        function openStoreDetail(storeId) {
+            const store = stores.find(s => s.id === storeId); if (!store) return;
+            document.getElementById('main-content').style.display = 'none';
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+            document.getElementById('store-detail-page').classList.add('active');
+            document.getElementById('store-detail-content').innerHTML = '<div class="p-4 pt-20 max-w-4xl mx-auto"><div class="flex items-center gap-4 mb-6"><button onclick="closeStoreDetail()" class="text-2xl hover:text-purple-400">←</button><span class="text-5xl">'+store.image+'</span><div class="flex-1"><h1 class="text-2xl font-bold">'+store.name+'</h1><p class="text-yellow-400">⭐ '+store.rating+' ('+store.reviews+')</p><p class="text-sm text-gray-400">최소주문 ₩'+store.minOrder.toLocaleString()+' • 배달비 ₩'+store.deliveryFee.toLocaleString()+'</p></div></div><div class="glow-border border-2 border-cyan-500/30 p-4 rounded-xl bg-black/40 mb-6"><h3 class="text-lg font-bold mb-3 text-cyan-400">🎫 사용 가능한 쿠폰</h3><div class="flex gap-2 flex-wrap">'+store.coupons.map(r => '<span class="rarity-badge '+r+'">'+rarityConfig[r].emoji+' '+rarityConfig[r].name+'</span>').join('')+'</div><button onclick="startGame()" class="mt-3 text-sm text-purple-400 hover:text-purple-300">🎮 게임에서 더 모으기 →</button></div><div class="glow-border border-2 border-purple-500/30 p-4 rounded-xl bg-black/40 mb-6"><h3 class="text-lg font-bold mb-3">📋 메뉴판</h3><div class="space-y-3">'+store.menu.map(item => '<div class="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg hover:bg-purple-900/40 cursor-pointer" onclick="addToCart()"><div class="flex items-center gap-3"><span class="text-3xl">'+item.image+'</span><div><p class="font-bold">'+item.name+'</p><p class="text-sm text-gray-400">'+item.desc+'</p></div></div><div class="text-right"><p class="font-bold text-cyan-400">₩'+item.price.toLocaleString()+'</p><p class="text-xs text-purple-400">+ 담기</p></div></div>').join('')+'</div></div><div class="grid grid-cols-2 gap-4 mb-6"><button onclick="orderDelivery()" class="btn-primary py-4">🛵 배달 주문</button><button onclick="orderPickup()" class="bg-cyan-900/50 border border-cyan-500 py-4 rounded-xl hover:bg-cyan-900/70">🏃 픽업 예약</button></div><div class="glow-border border-2 border-amber-500/30 p-4 rounded-xl bg-black/40 mb-6"><h3 class="text-lg font-bold mb-3 text-amber-400">💬 리뷰 & 댓글</h3><div class="space-y-3 mb-4"><div class="p-3 bg-amber-900/20 rounded-lg"><div class="flex items-center justify-between mb-1"><span class="font-bold">맛있어요님</span><span class="text-yellow-400 text-sm">⭐⭐⭐⭐⭐</span></div><p class="text-sm text-gray-300">정말 맛있어요! 다음에 또 주문할게요~</p></div><div class="p-3 bg-amber-900/20 rounded-lg"><div class="flex items-center justify-between mb-1"><span class="font-bold">단골손님</span><span class="text-yellow-400 text-sm">⭐⭐⭐⭐</span></div><p class="text-sm text-gray-300">양도 많고 배달도 빨라요!</p></div></div><div class="flex gap-2"><input type="text" placeholder="댓글을 입력하세요..." class="input-field flex-1"><button class="btn-primary px-4">전송</button></div></div><div class="glow-border border-2 border-green-500/30 p-4 rounded-xl bg-black/40 mb-6"><h3 class="text-lg font-bold mb-3 text-green-400">📞 사장님과 대화</h3><button onclick="showToast(\'채팅 기능은 준비중입니다!\')" class="w-full py-3 bg-green-900/50 border border-green-500 rounded-xl hover:bg-green-900/70">💬 채팅으로 문의하기</button></div><div class="text-center"><a href="#" onclick="showToast(\'매장 홈페이지로 이동합니다!\')" class="text-purple-400 hover:text-purple-300">🌐 매장 공식 홈페이지 방문 →</a></div></div>';
+        }
+        function closeStoreDetail() { document.getElementById('store-detail-page').classList.remove('active'); document.getElementById('main-content').style.display = 'block'; }
+        function addToCart() { showToast('장바구니에 담겼습니다!'); }
+        function orderDelivery() { showToast('배달 주문을 시작합니다!'); }
+        function orderPickup() { showToast('픽업 예약을 시작합니다!'); }
+        function openBusinessPage() { document.getElementById('main-content').style.display = 'none'; document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active')); document.getElementById('business-page').classList.add('active'); }
+        function closeBusinessPage() { document.getElementById('business-page').classList.remove('active'); document.getElementById('main-content').style.display = 'block'; }
+        function renderBusinessCoupons() {
+            const coupons = [{ title: '첫 주문 10% 할인', rarity: 'common', used: 23 },{ title: '불고기정식 3000원 할인', rarity: 'rare', used: 15 },{ title: '전 메뉴 20% 할인', rarity: 'epic', used: 8 },{ title: '무료 음료 증정', rarity: 'legendary', used: 1 }];
+            document.getElementById('business-coupon-list').innerHTML = coupons.map(c => '<div class="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg"><div class="flex items-center gap-3"><span class="text-2xl">'+rarityConfig[c.rarity].emoji+'</span><div><p class="font-bold">'+c.title+'</p><p class="text-xs text-gray-400">'+rarityConfig[c.rarity].name+' • '+c.used+'회 사용됨</p></div></div><button class="text-gray-400 hover:text-white">✏️</button></div>').join('');
+        }
+        function startGame() { document.getElementById('main-content').style.display = 'none'; document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active')); document.getElementById('game-container').classList.add('active'); document.getElementById('game-ready').classList.remove('hidden'); document.getElementById('game-over').classList.add('hidden'); }
+        function closeGame() { document.getElementById('game-container').classList.remove('active'); document.getElementById('main-content').style.display = 'block'; stopGame(); }
+        function beginGame() {
+            gameState = { playing: true, score: 0, caught: 0, combo: 0, time: 60 };
+            document.getElementById('game-ready').classList.add('hidden');
+            document.getElementById('game-over').classList.add('hidden');
+            document.getElementById('game-area').innerHTML = '';
+            updateGameHUD();
+            gameInterval = setInterval(() => { gameState.time--; document.getElementById('game-time').textContent = gameState.time; if (gameState.time <= 0) endGame(); }, 1000);
+            spawnInterval = setInterval(spawnCoupon, 800);
+        }
+        function stopGame() { clearInterval(gameInterval); clearInterval(spawnInterval); gameState.playing = false; }
+        function endGame() { stopGame(); document.getElementById('final-score').textContent = gameState.score.toLocaleString(); document.getElementById('final-caught').textContent = gameState.caught; document.getElementById('game-over').classList.remove('hidden'); }
+        function updateGameHUD() { document.getElementById('game-score').textContent = gameState.score.toLocaleString(); document.getElementById('game-caught').textContent = gameState.caught; document.getElementById('game-combo').textContent = 'x' + gameState.combo; document.getElementById('game-time').textContent = gameState.time; }
+        function spawnCoupon() {
+            if (!gameState.playing || Math.random() > 0.7) return;
+            const rarity = getRandomRarity();
+            const config = rarityConfig[rarity];
+            const coupon = document.createElement('div');
+            coupon.className = 'falling-coupon ' + rarity;
+            coupon.textContent = config.emoji;
+            coupon.style.left = (Math.random() * 80 + 10) + '%';
+            coupon.style.top = '-60px';
+            coupon.onclick = () => catchCoupon(coupon, rarity);
+            document.getElementById('game-area').appendChild(coupon);
+            let pos = -60;
+            const speed = 2 + Math.random() * 3;
+            const fall = setInterval(() => {
+                if (!gameState.playing) { clearInterval(fall); coupon.remove(); return; }
+                pos += speed;
+                coupon.style.top = pos + 'px';
+                if (pos > window.innerHeight) { clearInterval(fall); coupon.remove(); gameState.combo = 0; updateGameHUD(); }
+            }, 30);
+        }
+        function getRandomRarity() { const rand = Math.random(); let cumulative = 0; for (const [rarity, config] of Object.entries(rarityConfig)) { cumulative += config.dropRate; if (rand <= cumulative) return rarity; } return 'common'; }
+        function catchCoupon(element, rarity) {
+            const config = rarityConfig[rarity];
+            gameState.score += config.score + Math.floor(config.score * gameState.combo * 0.1);
+            gameState.caught++;
+            gameState.combo++;
+            const store = stores[Math.floor(Math.random() * stores.length)];
+            const discounts = { common: '10% 할인', rare: '₩3,000 할인', epic: '20% 할인', legendary: '30% 할인', mythic: '50% 할인' };
+            userCoupons.push({ id: Date.now(), rarity: rarity, title: ['첫 주문', '특별', '신메뉴', '주말'][Math.floor(Math.random() * 4)] + ' 할인', storeId: store.id, discount: discounts[rarity] });
+            localStorage.setItem('airctt_coupons', JSON.stringify(userCoupons));
+            element.style.transform = 'scale(1.5)';
+            element.style.opacity = '0';
+            setTimeout(() => element.remove(), 200);
+            updateGameHUD();
+        }
+        function showToast(message) { const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('active'); setTimeout(() => toast.classList.remove('active'), 3000); }
+    </script>
+    <!-- 3D 지구본 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-8 gradient-text">
+</body>
+</html>

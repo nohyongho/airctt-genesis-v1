@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRCTT - 매장 홈페이지 빌더 (Full Version)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* ===== 네비게이션 ===== */
+        .admin-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .admin-nav h1 { color: white; font-size: 1.2rem; }
+        .nav-tabs { display: flex; gap: 10px; }
+        .nav-tab {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        .nav-tab:hover, .nav-tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        /* ===== 메인 컨테이너 ===== */
+        .main-container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+        @media (max-width: 1000px) {
+            .main-container { grid-template-columns: 1fr; }
+            .sidebar { max-height: none; }
+        }
+
+        /* ===== 사이드바 ===== */
+        .sidebar {
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 60px);
+        }
+        .sidebar h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 아코디언 섹션 */
+        .accordion {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .accordion-header {
+            padding: 15px;
+            background: #f8f9fa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #333;
+        }
+        .accordion-header:hover { background: #f0f0f0; }
+        .accordion-header .arrow { transition: transform 0.3s; }
+        .accordion.open .accordion-header .arrow { transform: rotate(180deg); }
+        .accordion-content {
+            padding: 0 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .accordion.open .accordion-content {
+            padding: 15px;
+            max-height: 2000px;
+        }
+
+        /* 폼 요소 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* 색상 선택 */
+        .color-presets {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .color-preset {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .color-preset:hover { transform: scale(1.15); }
+        .color-preset.selected { border-color: #333; }
+
+        /* 이미지 업로드 */
+        .image-upload {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        .image-upload:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        .image-upload img {
+            max-width: 100%;
+            max-height: 120px;
+            border-radius: 8px;
+        }
+        .image-upload .hint {
+            margin-top: 8px;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        /* 메뉴 아이템 편집 */
+        .menu-edit-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #fafafa;
+        }
+        .menu-edit-item .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .menu-edit-item .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .add-menu-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .add-menu-btn:hover {
+            background: #f0f0ff;
+        }
+
+        /* 버튼 */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* ===== 미리보기 영역 ===== */
+        .preview-area {
+            padding: 20px;
+            background: #e8e8e8;
+            overflow-y: auto;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .device-toggle {
+            display: flex;
+            gap: 5px;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .device-btn {
+            padding: 8px 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .device-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .preview-frame {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            margin: 0 auto;
+            transition: all 0.3s;
+        }
+        .preview-frame.mobile { width: 390px; max-width: 100%; }
+        .preview-frame.desktop { width: 100%; max-width: 1000px; }
+
+        /* ===== 매장 홈페이지 스타일 ===== */
+        .store-page {
+            --primary-color: #667eea;
+            --text-color: #333;
+        }
+
+        /* 배너 */
+        .store-banner {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .store-banner::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.6));
+        }
+        .store-banner .badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* 프로필 */
+        .store-profile {
+            padding: 0 20px;
+            margin-top: -60px;
+            position: relative;
+            z-index: 10;
+        }
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .profile-header {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        .store-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .store-info h2 {
+            font-size: 1.3rem;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+        .store-info .category {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .store-info .description {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* SNS 링크 */
+        .sns-links {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .sns-link {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+        .sns-link:hover { transform: scale(1.1); }
+        .sns-link.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; }
+        .sns-link.youtube { background: #ff0000; color: white; }
+        .sns-link.naver { background: #03c75a; color: white; }
+        .sns-link.kakao { background: #fee500; color: #000; }
+        .sns-link.website { background: #667eea; color: white; }
+
+        /* 통계 */
+        .store-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .stat-item { text-align: center; }
+        .stat-item .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .stat-item .label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        /* 홍보 동영상 섹션 */
+        .promo-video-section {
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .promo-video-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+        .video-container iframe,
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+        }
+        .video-placeholder .play-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        /* 탭 */
+        .store-tabs {
+            display: flex;
+            padding: 15px 20px 0;
+            gap: 5px;
+            border-bottom: 1px solid #eee;
+            overflow-x: auto;
+        }
+        .store-tab {
+            padding: 12px 18px;
+            border: none;
+            background: transparent;
+            color: #888;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .store-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* 컨텐츠 */
+        .store-content { padding: 20px; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        /* 쿠폰 카드 */
+        .coupon-card {
+            background: linear-gradient(135deg, var(--primary-color), #764ba2);
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .coupon-card::before {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: #e8e8e8;
+            border-radius: 50%;
+        }
+        .coupon-card h4 { font-size: 1rem; margin-bottom: 5px; }
+        .coupon-card .discount { font-size: 1.8rem; font-weight: 700; }
+        .coupon-card .condition { font-size: 0.8rem; opacity: 0.9; margin-top: 5px; }
+        .coupon-card .get-btn {
+            position: absolute;
+            right: 30px;
+            bottom: 15px;
+            background: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        /* 메뉴 아이템 */
+        .menu-category-title {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 20px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        .menu-category-title:first-child { margin-top: 0; }
+        .menu-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .menu-item img {
+            width: 90px;
+            height: 90px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+        .menu-item .info { flex: 1; }
+        .menu-item .info h5 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+        .menu-item .info p {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .menu-item .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .menu-item .price {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        .menu-item .original-price {
+            text-decoration: line-through;
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-left: 8px;
+        }
+        .menu-item .order-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .menu-item .badges {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .menu-item .badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: #fff3cd;
+            color: #856404;
+        }
+        .menu-item .badge.best { background: #ff6b6b; color: white; }
+        .menu-item .badge.new { background: #667eea; color: white; }
+
+        /* 리뷰 */
+        .review-summary {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .review-score {
+            text-align: center;
+        }
+        .review-score .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .review-score .stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        .review-bars { flex: 1; }
+        .review-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+        .review-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .review-bar .fill {
+            height: 100%;
+            background: #ffc107;
+        }
+
+        .review-item {
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .review-header .name { font-weight: 600; color: #333; }
+        .review-header .date { font-size: 0.8rem; color: #888; }
+        .review-stars { color: #ffc107; margin-bottom: 8px; }
+        .review-text { font-size: 0.9rem; color: #555; line-height: 1.5; }
+        .review-images {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .review-images img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        /* 정보 */
+        .info-row {
+            display: flex;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: flex-start;
+        }
+        .info-row .icon {
+            width: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .info-row .text {
+            flex: 1;
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .info-row .text a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        .info-row .text a:hover {
+            text-decoration: underline;
+        }
+
+        /* 지도 */
+        .map-container {
+            margin-top: 20px;
+            background: #f0f0f0;
+            height: 200px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .map-container:hover {
+            background: #e8e8e8;
+        }
+
+        /* 영업시간 테이블 */
+        .hours-table {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .hours-table tr td {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .hours-table tr td:first-child {
+            font-weight: 600;
+            color: #555;
+            width: 80px;
+        }
+        .hours-table tr.today {
+            background: #f0f7ff;
+        }
+        .hours-table tr.today td:first-child {
+            color: var(--primary-color);
+        }
+
+        /* 하단 CTA */
+        .store-cta {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        .cta-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .cta-btn.primary { background: var(--primary-color); color: white; }
+        .cta-btn.secondary { background: #f0f0f0; color: #333; }
+        .cta-btn.kakao { background: #fee500; color: #000; }
+
+        /* ===== 유틸리티 ===== */
+        .hidden { display: none !important; }
+        .status-msg {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .status-msg.show { display: block; }
+        .status-msg.success { background: #d4edda; color: #155724; }
+        .status-msg.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <!-- 관리자 네비게이션 -->
+    <nav class="admin-nav">
+        <h1>🏪 AIRCTT 매장 홈페이지 빌더 v2.0</h1>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showView('builder')">편집모드</button>
+            <button class="nav-tab" onclick="showView('preview-only')">전체화면</button>
+            <button class="nav-tab" onclick="showView('code')">JSON 보기</button>
+        </div>
+    </nav>
+
+    <div class="main-container" id="builder-view">
+        <!-- 사이드바: 편집 패널 -->
+        <aside class="sidebar">
+            <div id="status-msg" class="status-msg"></div>
+
+            <!-- 기본 정보 -->
+            <div class="accordion open">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    📝 기본 정보
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="form-group">
+                        <label>매장명</label>
+                        <input type="text" id="edit-name" value="맛있는 한정식" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>업종 카테고리</label>
+                        <select id="edit-category" onchange="updatePreview()">
+                            <option value="한식">한식</option>
+                            <option value="중식">중식</option>
+                            <option value="일식">일식</option>
+                            <option value="양식">양식</option>
+                            <option value="카페">카페</option>
+                            <option value="디저트">디저트</option>
+                            <option value="뷰티">뷰티</option>
+                            <option value="문화/공연">문화/공연</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>한줄 소개</label>
+                        <textarea id="edit-description" rows="2" oninput="updatePreview()">정성을 담아 만드는 건강한 한정식</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>로고 이모지</label>
+                        <select id="edit-logo" onchange="updatePreview()">
+                            <option value="🍽️">🍽️ 식당</option>
+                            <option value="☕">☕ 카페</option>
+                            <option value="🍰">🍰 디저트</option>
+                            <option value="💇">💇 뷰티</option>
+                            <option value="🎭">🎭 문화</option>
+                            <option value="🛍️">🛍️ 쇼핑</option>
+                            <option value="💪">💪 운동</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 테마 설정 -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    🎨 테마 설정
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="form-group">
+                        <label>메인 컬러</label>
+                        <div class="color-presets">
+                            <div class="color-preset selected" style="background:#667eea" onclick="setColor('#667eea', this)"></div>
+                            <div class="color-preset" style="background:#e74c3c" onclick="setColor('#e74c3c', this)"></div>
+                            <div class="color-preset" style="background:#27ae60" onclick="setColor('#27ae60', this)"></div>
+                            <div class="color-preset" style="background:#f39c12" onclick="setColor('#f39c12', this)"></div>
+                            <div class="color-preset" style="background:#9b59b6" onclick="setColor('#9b59b6', this)"></div>
+                            <div class="color-preset" style="background:#1abc9c" onclick="setColor('#1abc9c', this)"></div>
+                            <div class="color-preset" style="background:#34495e" onclick="setColor('#34495e', this)"></div>
+                            <div class="color-preset" style="background:#e91e63" onclick="setColor('#e91e63', this)"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>배너 이미지</label>
+                        <div class="image-upload" onclick="document.getElementById('banner-input').click()">
+                            <img id="banner-preview" src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800" alt="배너">
+                            <input type="file" id="banner-input" accept="image/*" style="display:none" onchange="handleImageUpload(event, 'banner')">
+                            <p class="hint">클릭하여 변경 (권장: 1200x400)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🎬 홍보 동영상 -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    🎬 홍보 동영상
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="form-group">
+                        <label>YouTube URL</label>
+                        <input type="text" id="edit-video" placeholder="https://youtube.com/watch?v=..." oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>또는 동영상 파일</label>
+                        <div class="image-upload" onclick="document.getElementById('video-input').click()">
+                            <span style="font-size:2rem;">📹</span>
+                            <input type="file" id="video-input" accept="video/*" style="display:none" onchange="handleVideoUpload(event)">
+                            <p class="hint">MP4 파일 업로드</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="edit-video-show" checked onchange="updatePreview()">
+                            홍보 동영상 표시
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔗 홈페이지/SNS 연동 -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    🔗 홈페이지/SNS 연동
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="form-group">
+                        <label>🌐 홈페이지 URL</label>
+                        <input type="url" id="edit-website" placeholder="https://mystore.com" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>📸 인스타그램</label>
+                        <input type="text" id="edit-instagram" placeholder="@username" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>▶️ 유튜브 채널</label>
+                        <input type="url" id="edit-youtube" placeholder="https://youtube.com/@channel" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>📗 네이버 블로그</label>
+                        <input type="url" id="edit-naver" placeholder="https://blog.naver.com/..." oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>💬 카카오톡 채널</label>
+                        <input type="url" id="edit-kakao" placeholder="https://pf.kakao.com/..." oninput="updatePreview()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📍 연락처/위치 -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    📍 연락처/위치
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="form-group">
+                        <label>전화번호</label>
+                        <input type="tel" id="edit-phone" value="02-1234-5678" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>주소</label>
+                        <input type="text" id="edit-address" value="서울시 강남구 테헤란로 123" oninput="updatePreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>주차 정보</label>
+                        <input type="text" id="edit-parking" value="건물 지하 주차 가능 (2시간 무료)" oninput="updatePreview()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🕐 영업시간 -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    🕐 영업시간
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>월~금</label>
+                            <input type="text" id="edit-hours-weekday" value="11:00 - 22:00" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>토요일</label>
+                            <input type="text" id="edit-hours-sat" value="11:00 - 22:00" oninput="updatePreview()">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>일요일</label>
+                            <input type="text" id="edit-hours-sun" value="12:00 - 21:00" oninput="updatePreview()">
+                        </div>
+                        <div class="form-group">
+                            <label>브레이크타임</label>
+                            <input type="text" id="edit-breaktime" value="15:00 - 17:00" oninput="updatePreview()">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>휴무일</label>
+                        <input type="text" id="edit-holiday" value="매주 월요일" oninput="updatePreview()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🍽️ 메뉴 관리 -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    🍽️ 메뉴 관리
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div id="menu-list">
+                        <!-- 메뉴 아이템들이 여기에 추가됨 -->
+                    </div>
+                    <button class="add-menu-btn" onclick="addMenuItem()">+ 메뉴 추가</button>
+                </div>
+            </div>
+
+            <!-- 🎫 예약/주문 설정 -->
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    🎫 예약/주문 설정
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="edit-reservation" checked onchange="updatePreview()">
+                            예약 기능 활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="edit-takeout" checked onchange="updatePreview()">
+                            포장 주문 가능
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="edit-delivery" onchange="updatePreview()">
+                            배달 가능
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>예약 URL (외부 링크)</label>
+                        <input type="url" id="edit-reservation-url" placeholder="https://booking.naver.com/..." oninput="updatePreview()">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveStore()" style="margin-top: 20px;">
+                💾 저장하기
+            </button>
+        </aside>
+
+        <!-- 미리보기 영역 -->
+        <main class="preview-area">
+            <div class="preview-header">
+                <h3>📱 미리보기</h3>
+                <div class="device-toggle">
+                    <button class="device-btn active" onclick="setDevice('mobile', this)">📱 모바일</button>
+                    <button class="device-btn" onclick="setDevice('desktop', this)">🖥️ 데스크탑</button>
+                </div>
+            </div>
+
+            <div class="preview-frame mobile" id="preview-frame">
+                <!-- 매장 홈페이지 -->
+                <div class="store-page" id="store-page">
+                    <!-- 배너 -->
+                    <div class="store-banner" id="store-banner" style="background-image: url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800')">
+                        <span class="badge">🏆 인기 맛집</span>
+                    </div>
+
+                    <!-- 프로필 -->
+                    <div class="store-profile">
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <div class="store-logo" id="store-logo">🍽️</div>
+                                <div class="store-info">
+                                    <h2 id="store-name">맛있는 한정식</h2>
+                                    <div class="category" id="store-category">한식 · 강남구</div>
+                                    <div class="description" id="store-description">정성을 담아 만드는 건강한 한정식</div>
+
+                                    <!-- SNS 링크 -->
+                                    <div class="sns-links" id="sns-links">
+                                        <a href="#" class="sns-link website" title="홈페이지">🌐</a>
+                                        <a href="#" class="sns-link instagram" title="인스타그램">📸</a>
+                                        <a href="#" class="sns-link youtube" title="유튜브">▶️</a>
+                                        <a href="#" class="sns-link naver" title="네이버">📗</a>
+                                        <a href="#" class="sns-link kakao" title="카카오">💬</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="store-stats">
+                                <div class="stat-item">
+                                    <div class="value">4.8</div>
+                                    <div class="label">평점</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="value">128</div>
+                                    <div class="label">리뷰</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="value">1.2K</div>
+                                    <div class="label">팔로워</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🎬 홍보 동영상 -->
+                    <div class="promo-video-section" id="promo-video-section">
+                        <h4>🎬 매장 소개 영상</h4>
+                        <div class="video-container" id="video-container">
+                            <div class="video-placeholder" id="video-placeholder">
+                                <span class="play-icon">▶️</span>
+                                <span>영상을 등록해주세요</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 탭 -->
+                    <div class="store-tabs">
+                        <button class="store-tab active" onclick="showStoreTab('home')">홈</button>
+                        <button class="store-tab" onclick="showStoreTab('menu')">메뉴</button>
+                        <button class="store-tab" onclick="showStoreTab('coupon')">쿠폰</button>
+                        <button class="store-tab" onclick="showStoreTab('review')">리뷰</button>
+                        <button class="store-tab" onclick="showStoreTab('info')">정보</button>
+                    </div>
+
+                    <!-- 컨텐츠 -->
+                    <div class="store-content">
+                        <!-- 홈 탭 -->
+                        <div class="content-section active" id="section-home">
+                            <div class="coupon-card">
+                                <h4>🎉 신규 고객 환영 쿠폰</h4>
+                                <div class="discount">10% 할인</div>
+                                <div class="condition">15,000원 이상 주문 시</div>
+                                <button class="get-btn">받기</button>
+                            </div>
+
+                            <h4 style="margin: 20px 0 15px; color: #333;">🔥 인기 메뉴</h4>
+                            <div id="home-menu-list">
+                                <!-- 동적으로 채워짐 -->
+                            </div>
+                        </div>
+
+                        <!-- 메뉴 탭 -->
+                        <div class="content-section" id="section-menu">
+                            <div id="full-menu-list">
+                                <!-- 동적으로 채워짐 -->
+                            </div>
+                        </div>
+
+                        <!-- 쿠폰 탭 -->
+                        <div class="content-section" id="section-coupon">
+                            <div class="coupon-card">
+                                <h4>🎉 신규 고객 환영 쿠폰</h4>
+                                <div class="discount">10% 할인</div>
+                                <div class="condition">15,000원 이상 주문 시 · 30일 유효</div>
+                                <button class="get-btn">받기</button>
+                            </div>
+                            <div class="coupon-card" style="background: linear-gradient(135deg, #f39c12, #e74c3c);">
+                                <h4>🍽️ 점심 특가</h4>
+                                <div class="discount">3,000원 할인</div>
+                                <div class="condition">11:00-14:00 · 10,000원 이상</div>
+                                <button class="get-btn">받기</button>
+                            </div>
+                            <div class="coupon-card" style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+                                <h4>👨‍👩‍👧‍👦 2인 이상 방문</h4>
+                                <div class="discount">음료 서비스</div>
+                                <div class="condition">30,000원 이상 주문 시</div>
+                                <button class="get-btn">받기</button>
+                            </div>
+                        </div>
+
+                        <!-- 리뷰 탭 -->
+                        <div class="content-section" id="section-review">
+                            <div class="review-summary">
+                                <div class="review-score">
+                                    <div class="number">4.8</div>
+                                    <div class="stars">★★★★★</div>
+                                    <div style="font-size:0.8rem; color:#888;">128개 리뷰</div>
+                                </div>
+                                <div class="review-bars">
+                                    <div class="review-bar-item">
+                                        <span>5</span>
+                                        <div class="review-bar"><div class="fill" style="width:80%"></div></div>
+                                        <span>80%</span>
+                                    </div>
+                                    <div class="review-bar-item">
+                                        <span>4</span>
+                                        <div class="review-bar"><div class="fill" style="width:15%"></div></div>
+                                        <span>15%</span>
+                                    </div>
+                                    <div class="review-bar-item">
+                                        <span>3</span>
+                                        <div class="review-bar"><div class="fill" style="width:5%"></div></div>
+                                        <span>5%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span class="name">김**</span>
+                                    <span class="date">2025.12.20</span>
+                                </div>
+                                <div class="review-stars">★★★★★</div>
+                                <div class="review-text">반찬 하나하나가 정성스럽고 맛있어요. 어머니 모시고 갔는데 아주 만족하셨습니다!</div>
+                                <div class="review-images">
+                                    <img src="https://images.unsplash.com/photo-1580651315530-69c8e0026377?w=100" alt="">
+                                    <img src="https://images.unsplash.com/photo-1547592166-23ac45744acd?w=100" alt="">
+                                </div>
+                            </div>
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span class="name">이**</span>
+                                    <span class="date">2025.12.18</span>
+                                </div>
+                                <div class="review-stars">★★★★☆</div>
+                                <div class="review-text">점심 특가로 저렴하게 먹었어요. 맛도 좋고 양도 적당합니다.</div>
+                            </div>
+                        </div>
+
+                        <!-- 정보 탭 -->
+                        <div class="content-section" id="section-info">
+                            <div class="info-row">
+                                <span class="icon">📍</span>
+                                <span class="text" id="info-address">
+                                    서울시 강남구 테헤란로 123
+                                    <br><a href="#" onclick="openMap()">지도에서 보기 →</a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="icon">📞</span>
+                                <span class="text">
+                                    <a href="tel:02-1234-5678" id="info-phone-link">02-1234-5678</a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="icon">🌐</span>
+                                <span class="text" id="info-website">
+                                    <a href="#" target="_blank">홈페이지 바로가기 →</a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="icon">🕐</span>
+                                <span class="text">
+                                    <strong>영업시간</strong>
+                                    <table class="hours-table">
+                                        <tr class="today"><td>월~금</td><td id="info-hours-weekday">11:00 - 22:00</td></tr>
+                                        <tr><td>토요일</td><td id="info-hours-sat">11:00 - 22:00</td></tr>
+                                        <tr><td>일요일</td><td id="info-hours-sun">12:00 - 21:00</td></tr>
+                                        <tr><td>브레이크</td><td id="info-breaktime">15:00 - 17:00</td></tr>
+                                        <tr><td>휴무일</td><td id="info-holiday">매주 월요일</td></tr>
+                                    </table>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="icon">🅿️</span>
+                                <span class="text" id="info-parking">건물 지하 주차 가능 (2시간 무료)</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="icon">💳</span>
+                                <span class="text">현금 / 카드 / 제로페이</span>
+                            </div>
+
+                            <div class="map-container" onclick="openMap()">
+                                🗺️ 지도 보기 (클릭)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 하단 CTA -->
+                    <div class="store-cta" id="store-cta">
+                        <button class="cta-btn secondary" onclick="makeCall()">📞 전화</button>
+                        <button class="cta-btn kakao" id="btn-kakao">💬 채팅</button>
+                        <button class="cta-btn primary" id="btn-reservation">📅 예약</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 코드 보기 뷰 -->
+    <div id="code-view" class="hidden" style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+        <h3 style="margin-bottom: 15px;">📄 생성된 매장 데이터 (JSON)</h3>
+        <pre id="json-output" style="background: #2d3748; color: #68d391; padding: 20px; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; max-height: 80vh;"></pre>
+    </div>
+
+    <script>
+        // ===== 초기 메뉴 데이터 =====
+        let menuItems = [
+            { id: 1, name: '한정식 코스 A', desc: '계절 반찬 8종 + 메인 요리', price: 25000, originalPrice: 30000, image: 'https://images.unsplash.com/photo-1580651315530-69c8e0026377?w=200', category: '코스요리', badges: ['best'] },
+            { id: 2, name: '된장찌개 정식', desc: '구수한 된장찌개 + 밥 + 반찬', price: 12000, image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=200', category: '정식', badges: [] },
+            { id: 3, name: '불고기 정식', desc: '양념 불고기 + 밥 + 반찬', price: 15000, image: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=200', category: '정식', badges: ['new'] },
+            { id: 4, name: '비빔밥', desc: '신선한 야채와 고추장', price: 10000, image: 'https://images.unsplash.com/photo-1553163147-622ab57be1c7?w=200', category: '단품', badges: [] },
+        ];
+        let menuIdCounter = 5;
+
+        // ===== 아코디언 =====
+        function toggleAccordion(header) {
+            const accordion = header.parentElement;
+            accordion.classList.toggle('open');
+        }
+
+        // ===== 뷰 전환 =====
+        function showView(view) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('builder-view').classList.toggle('hidden', view !== 'builder');
+            document.getElementById('code-view').classList.toggle('hidden', view !== 'code');
+
+            if (view === 'code') updateJsonOutput();
+            if (view === 'preview-only') {
+                window.open('about:blank').document.write(document.getElementById('store-page').outerHTML);
+            }
+        }
+
+        // ===== 디바이스 전환 =====
+        function setDevice(device, btn) {
+            document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const frame = document.getElementById('preview-frame');
+            frame.classList.remove('mobile', 'desktop');
+            frame.classList.add(device);
+        }
+
+        // ===== 색상 설정 =====
+        function setColor(color, el) {
+            document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('store-page').style.setProperty('--primary-color', color);
+        }
+
+        // ===== 이미지 업로드 =====
+        function handleImageUpload(event, type) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (type === 'banner') {
+                        document.getElementById('banner-preview').src = e.target.result;
+                        document.getElementById('store-banner').style.backgroundImage = `url('${e.target.result}')`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ===== 동영상 처리 =====
+        function handleVideoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                updateVideoPreview(url, 'file');
+            }
+        }
+
+        function updateVideoPreview(url, type) {
+            const container = document.getElementById('video-container');
+            const placeholder = document.getElementById('video-placeholder');
+
+            if (!url) {
+                placeholder.style.display = 'flex';
+                placeholder.innerHTML = '<span class="play-icon">▶️</span><span>영상을 등록해주세요</span>';
+                return;
+            }
+
+            placeholder.style.display = 'none';
+
+            // YouTube URL 처리
+            if (type === 'youtube' || url.includes('youtube.com') || url.includes('youtu.be')) {
+                let videoId = '';
+                if (url.includes('youtube.com/watch')) {
+                    videoId = new URL(url).searchParams.get('v');
+                } else if (url.includes('youtu.be/')) {
+                    videoId = url.split('youtu.be/')[1].split('?')[0];
+                }
+                if (videoId) {
+                    container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+                }
+            } else {
+                container.innerHTML = `<video src="${url}" controls></video>`;
+            }
+        }
+
+        // ===== 메뉴 관리 =====
+        function renderMenuEditor() {
+            const list = document.getElementById('menu-list');
+            list.innerHTML = menuItems.map((item, idx) => `
+                <div class="menu-edit-item" data-id="${item.id}">
+                    <div class="menu-header">
+                        <strong>${item.name}</strong>
+                        <button class="delete-btn" onclick="deleteMenuItem(${item.id})">삭제</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>메뉴명</label>
+                            <input type="text" value="${item.name}" onchange="updateMenuItem(${item.id}, 'name', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>가격</label>
+                            <input type="number" value="${item.price}" onchange="updateMenuItem(${item.id}, 'price', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>설명</label>
+                        <input type="text" value="${item.desc}" onchange="updateMenuItem(${item.id}, 'desc', this.value)">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>카테고리</label>
+                            <input type="text" value="${item.category || ''}" onchange="updateMenuItem(${item.id}, 'category', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>원가 (할인 전)</label>
+                            <input type="number" value="${item.originalPrice || ''}" onchange="updateMenuItem(${item.id}, 'originalPrice', this.value)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>이미지 URL</label>
+                        <input type="text" value="${item.image}" onchange="updateMenuItem(${item.id}, 'image', this.value)">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addMenuItem() {
+            menuItems.push({
+                id: menuIdCounter++,
+                name: '새 메뉴',
+                desc: '메뉴 설명',
+                price: 10000,
+                image: 'https://via.placeholder.com/200',
+                category: '기타',
+                badges: ['new']
+            });
+            renderMenuEditor();
+            updatePreview();
+        }
+
+        function deleteMenuItem(id) {
+            menuItems = menuItems.filter(m => m.id !== id);
+            renderMenuEditor();
+            updatePreview();
+        }
+
+        function updateMenuItem(id, field, value) {
+            const item = menuItems.find(m => m.id === id);
+            if (item) {
+                item[field] = field === 'price' || field === 'originalPrice' ? Number(value) : value;
+                updatePreview();
+            }
+        }
+
+        function renderMenuPreview() {
+            // 홈 탭 - 인기 메뉴 2개
+            const homeList = document.getElementById('home-menu-list');
+            homeList.innerHTML = menuItems.slice(0, 2).map(item => renderMenuItemHTML(item)).join('');
+
+            // 메뉴 탭 - 카테고리별
+            const fullList = document.getElementById('full-menu-list');
+            const categories = [...new Set(menuItems.map(m => m.category || '기타'))];
+            fullList.innerHTML = categories.map(cat => `
+                <h4 class="menu-category-title">${cat}</h4>
+                ${menuItems.filter(m => (m.category || '기타') === cat).map(item => renderMenuItemHTML(item)).join('')}
+            `).join('');
+        }
+
+        function renderMenuItemHTML(item) {
+            const badges = (item.badges || []).map(b => {
+                if (b === 'best') return '<span class="badge best">BEST</span>';
+                if (b === 'new') return '<span class="badge new">NEW</span>';
+                return `<span class="badge">${b}</span>`;
+            }).join('');
+
+            return `
+                <div class="menu-item">
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="info">
+                        <h5>${item.name}</h5>
+                        <p>${item.desc}</p>
+                        <div class="price-row">
+                            <div>
+                                <span class="price">${item.price.toLocaleString()}원</span>
+                                ${item.originalPrice ? `<span class="original-price">${item.originalPrice.toLocaleString()}원</span>` : ''}
+                            </div>
+                            <button class="order-btn">담기</button>
+                        </div>
+                        ${badges ? `<div class="badges">${badges}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== 미리보기 업데이트 =====
+        function updatePreview() {
+            // 기본 정보
+            document.getElementById('store-name').textContent = document.getElementById('edit-name').value;
+            document.getElementById('store-category').textContent = document.getElementById('edit-category').value + ' · 강남구';
+            document.getElementById('store-description').textContent = document.getElementById('edit-description').value;
+            document.getElementById('store-logo').textContent = document.getElementById('edit-logo').value;
+
+            // 연락처/위치
+            const phone = document.getElementById('edit-phone').value;
+            document.getElementById('info-phone-link').textContent = phone;
+            document.getElementById('info-phone-link').href = 'tel:' + phone;
+            document.getElementById('info-address').innerHTML = document.getElementById('edit-address').value + '<br><a href="#" onclick="openMap()">지도에서 보기 →</a>';
+            document.getElementById('info-parking').textContent = document.getElementById('edit-parking').value;
+
+            // 영업시간
+            document.getElementById('info-hours-weekday').textContent = document.getElementById('edit-hours-weekday').value;
+            document.getElementById('info-hours-sat').textContent = document.getElementById('edit-hours-sat').value;
+            document.getElementById('info-hours-sun').textContent = document.getElementById('edit-hours-sun').value;
+            document.getElementById('info-breaktime').textContent = document.getElementById('edit-breaktime').value;
+            document.getElementById('info-holiday').textContent = document.getElementById('edit-holiday').value;
+
+            // SNS 링크
+            updateSnsLinks();
+
+            // 홍보 동영상
+            const videoUrl = document.getElementById('edit-video').value;
+            const showVideo = document.getElementById('edit-video-show').checked;
+            document.getElementById('promo-video-section').style.display = showVideo ? 'block' : 'none';
+            if (videoUrl) updateVideoPreview(videoUrl, 'youtube');
+
+            // 홈페이지 링크
+            const website = document.getElementById('edit-website').value;
+            const websiteEl = document.getElementById('info-website');
+            if (website) {
+                websiteEl.innerHTML = `<a href="${website}" target="_blank">홈페이지 바로가기 →</a>`;
+                websiteEl.parentElement.style.display = 'flex';
+            } else {
+                websiteEl.parentElement.style.display = 'none';
+            }
+
+            // 예약 버튼
+            const reservationUrl = document.getElementById('edit-reservation-url').value;
+            const btnReservation = document.getElementById('btn-reservation');
+            if (reservationUrl) {
+                btnReservation.onclick = () => window.open(reservationUrl, '_blank');
+            }
+
+            // 카카오 버튼
+            const kakaoUrl = document.getElementById('edit-kakao').value;
+            const btnKakao = document.getElementById('btn-kakao');
+            btnKakao.style.display = kakaoUrl ? 'flex' : 'none';
+            if (kakaoUrl) {
+                btnKakao.onclick = () => window.open(kakaoUrl, '_blank');
+            }
+
+            // 메뉴
+            renderMenuPreview();
+        }
+
+        function updateSnsLinks() {
+            const links = document.getElementById('sns-links');
+            const website = document.getElementById('edit-website').value;
+            const instagram = document.getElementById('edit-instagram').value;
+            const youtube = document.getElementById('edit-youtube').value;
+            const naver = document.getElementById('edit-naver').value;
+            const kakao = document.getElementById('edit-kakao').value;
+
+            let html = '';
+            if (website) html += `<a href="${website}" class="sns-link website" target="_blank" title="홈페이지">🌐</a>`;
+            if (instagram) html += `<a href="https://instagram.com/${instagram.replace('@','')}" class="sns-link instagram" target="_blank" title="인스타그램">📸</a>`;
+            if (youtube) html += `<a href="${youtube}" class="sns-link youtube" target="_blank" title="유튜브">▶️</a>`;
+            if (naver) html += `<a href="${naver}" class="sns-link naver" target="_blank" title="네이버">📗</a>`;
+            if (kakao) html += `<a href="${kakao}" class="sns-link kakao" target="_blank" title="카카오">💬</a>`;
+
+            links.innerHTML = html || '<span style="color:#888; font-size:0.8rem;">SNS를 연결해주세요</span>';
+        }
+
+        // ===== 매장 탭 전환 =====
+        function showStoreTab(tabName) {
+            document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section-' + tabName).classList.add('active');
+        }
+
+        // ===== 유틸리티 =====
+        function makeCall() {
+            const phone = document.getElementById('edit-phone').value;
+            window.location.href = 'tel:' + phone;
+        }
+
+        function openMap() {
+            const address = document.getElementById('edit-address').value;
+            window.open(`https://map.kakao.com/?q=${encodeURIComponent(address)}`, '_blank');
+        }
+
+        // ===== 데이터 =====
+        function getStoreData() {
+            return {
+                basic: {
+                    name: document.getElementById('edit-name').value,
+                    category: document.getElementById('edit-category').value,
+                    description: document.getElementById('edit-description').value,
+                    logo_emoji: document.getElementById('edit-logo').value,
+                },
+                theme: {
+                    primary_color: document.getElementById('store-page').style.getPropertyValue('--primary-color') || '#667eea',
+                    banner_url: document.getElementById('banner-preview').src,
+                },
+                video: {
+                    youtube_url: document.getElementById('edit-video').value,
+                    show: document.getElementById('edit-video-show').checked,
+                },
+                sns: {
+                    website: document.getElementById('edit-website').value,
+                    instagram: document.getElementById('edit-instagram').value,
+                    youtube: document.getElementById('edit-youtube').value,
+                    naver: document.getElementById('edit-naver').value,
+                    kakao: document.getElementById('edit-kakao').value,
+                },
+                contact: {
+                    phone: document.getElementById('edit-phone').value,
+                    address: document.getElementById('edit-address').value,
+                    parking: document.getElementById('edit-parking').value,
+                },
+                hours: {
+                    weekday: document.getElementById('edit-hours-weekday').value,
+                    saturday: document.getElementById('edit-hours-sat').value,
+                    sunday: document.getElementById('edit-hours-sun').value,
+                    breaktime: document.getElementById('edit-breaktime').value,
+                    holiday: document.getElementById('edit-holiday').value,
+                },
+                settings: {
+                    reservation_enabled: document.getElementById('edit-reservation').checked,
+                    takeout_enabled: document.getElementById('edit-takeout').checked,
+                    delivery_enabled: document.getElementById('edit-delivery').checked,
+                    reservation_url: document.getElementById('edit-reservation-url').value,
+                },
+                menu: menuItems,
+            };
+        }
+
+        function updateJsonOutput() {
+            document.getElementById('json-output').textContent = JSON.stringify(getStoreData(), null, 2);
+        }
+
+        // ===== 저장 =====
+        function saveStore() {
+            const data = getStoreData();
+            console.log('저장할 데이터:', data);
+
+            // 상태 메시지
+            const msg = document.getElementById('status-msg');
+            msg.className = 'status-msg show success';
+            msg.textContent = '✅ 저장되었습니다! (테스트 모드)';
+            setTimeout(() => msg.classList.remove('show'), 3000);
+        }
+
+        // ===== 초기화 =====
+        renderMenuEditor();
+        updatePreview();
+    </script>
+</body>
+</html>

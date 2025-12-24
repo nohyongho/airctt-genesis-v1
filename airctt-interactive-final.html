@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIRCTT - AI Reality CouponTalkTalk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+    
+    h1, h2, h3 { font-family: 'Orbitron', monospace; }
+    
+    #canvas-3d {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(168, 85, 247, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168, 85, 247, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    
+    .glow-border {
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      box-shadow: 
+        0 0 20px rgba(168, 85, 247, 0.2),
+        inset 0 0 20px rgba(168, 85, 247, 0.1);
+    }
+    
+    .neon-text {
+      text-shadow: 
+        0 0 10px rgba(168, 85, 247, 0.8),
+        0 0 20px rgba(168, 85, 247, 0.6),
+        0 0 30px rgba(168, 85, 247, 0.4);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn-primary:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .card {
+      background: rgba(26, 10, 46, 0.3);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(168, 85, 247, 0.3);
+      background: rgba(26, 10, 46, 0.5);
+    }
+    
+    .card.active {
+      background: rgba(26, 10, 46, 0.6);
+      box-shadow: 0 20px 40px rgba(168, 85, 247, 0.5);
+    }
+    
+    .card-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease-out, opacity 0.5s ease-out, margin-top 0.5s ease-out;
+      opacity: 0;
+      margin-top: 0;
+      padding: 0 1rem;
+      background: rgba(10, 10, 10, 0.8);
+      border-radius: 0.5rem;
+      border-left: 3px solid #22d3ee;
+    }
+    
+    .card-details.open {
+      max-height: 2000px;
+      opacity: 1;
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+    }
+    
+    .card-details ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .card-details li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: #a0a0a0;
+      line-height: 1.6;
+    }
+    
+    .card-details li:before {
+      content: '▹';
+      position: absolute;
+      left: 0;
+      color: #22d3ee;
+      font-weight: bold;
+    }
+    
+    .card-details h4 {
+      color: #a855f7;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    #globe-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      margin: 4rem 0;
+    }
+    
+    #globe-canvas {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    
+    #globe-canvas:active {
+      cursor: grabbing;
+    }
+    
+    .icon-replacement {
+      display: inline-block;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+    
+    .detail-badge {
+      display: inline-block;
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.85rem;
+      margin: 0.25rem;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+  </style>
+</head>
+<body class="grid-bg">
+  <!-- 3D 배경 캔버스 -->
+  <canvas id="canvas-3d"></canvas>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="content">
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center px-4">
+      <div class="text-center max-w-4xl mx-auto">
+        <div class="mb-8">
+          <span class="text-6xl filter drop-shadow-lg" style="filter: drop-shadow(0 0 20px #fbbf24);">🐰</span>
+        </div>
+        <h1 class="text-6xl md:text-8xl font-black mb-6">
+          <span class="neon-text">AIRCTT</span>
+        </h1>
+        <p class="text-2xl md:text-3xl mb-4 gradient-text font-bold">
+          AI Reality CouponTalkTalk
+        </p>
+        <p class="text-xl md:text-2xl mb-8 text-gray-300">
+          위치기반 AR 쿠폰 플랫폼
+        </p>
+        <p class="text-lg md:text-xl mb-12 text-purple-300">
+          숫자가 아닌 사람을 지키는 메타버스 경제 OS
+        </p>
+        <div class="flex gap-4 justify-center flex-wrap">
+          <a href="https://airctt-genesis-v1-veeu.vercel.app/consumer/game" target="_blank" class="btn-primary">
+            이벤트 데모 체험하기
+          </a>
+          <a href="https://airctt-genesis-v1-veeu.vercel.app/consumer/game" target="_blank" class="btn-primary">
+            사업자 시스템 시작하기
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 문제점 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          현재의 문제
+        </h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="card glow-border" data-card="problem-1">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">양극화 구조</h3>
+            <p class="text-gray-300">대형 플랫폼의 독점, 과도한 수수료로 인한 중소상공인의 어려움</p>
+            <div class="card-details" data-details="problem-1">
+              <h4>🔍 상세 분석</h4>
+              <ul>
+                <li><strong>대형 플랫폼 수수료:</strong> 배달의민족, 쿠팡이츠 등은 주문 건당 6.8~12% 수수료 + 배달비 + 광고비 부과</li>
+                <li><strong>중소상공인 부담:</strong> 월 평균 100~300만원 플랫폼 비용 발생, 순이익 30~50% 감소</li>
+                <li><strong>독점적 지위:</strong> 시장점유율 90% 이상으로 대안 선택권 부재</li>
+                <li><strong>가격 결정권 상실:</strong> 플랫폼이 할인 정책 강요, 자율적 가격 책정 불가</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>중소벤처기업부 "플랫폼 공정화 및 상생 생태계 조성" 과제 (2023-2025)</li>
+                <li>공정거래위원회 "온라인 플랫폼 중개거래 공정화법" 시행</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border" data-card="problem-2">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">데이터 주권 상실</h3>
+            <p class="text-gray-300">플랫폼 종속으로 독자적인 고객 데이터 확보 불가능</p>
+            <div class="card-details" data-details="problem-2">
+              <h4>🔍 상세 분석</h4>
+              <ul>
+                <li><strong>고객 정보 차단:</strong> 플랫폼이 고객 연락처, 주문 히스토리 독점 소유</li>
+                <li><strong>마케팅 자율성 제한:</strong> 자체 고객 DB 부재로 직접 마케팅 불가</li>
+                <li><strong>재방문 유도 한계:</strong> 고객과의 직접 소통 채널 부재</li>
+                <li><strong>데이터 분석 불가:</strong> 매출 패턴, 선호 메뉴 등 심층 분석 도구 미제공</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>과학기술정보통신부 "데이터 주권 강화 및 개인정보 보호" 과제</li>
+                <li>중소기업 데이터 활용 지원 사업 (K-Data 플랫폼)</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border" data-card="problem-3">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">높은 진입장벽</h3>
+            <p class="text-gray-300">기술 접근성 차이가 경제적 빈곤으로 이어지는 구조</p>
+            <div class="card-details" data-details="problem-3">
+              <h4>🔍 상세 분석</h4>
+              <ul>
+                <li><strong>디지털 격차:</strong> 고령층, 영세 자영업자의 플랫폼 사용 어려움</li>
+                <li><strong>초기 비용 부담:</strong> 전문 사진 촬영, 메뉴 등록, 광고비 등 최소 200~500만원 필요</li>
+                <li><strong>기술 교육 부족:</strong> 플랫폼 운영 노하우 학습에 시간·비용 소요</li>
+                <li><strong>경쟁 심화:</strong> 신규 진입 시 기존 업체 대비 노출 불리</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>중소벤처기업부 "소상공인 디지털 전환 지원" 과제</li>
+                <li>고용노동부 "디지털 역량 강화 교육" 프로그램</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border" data-card="problem-4">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">수익성 악화</h3>
+            <p class="text-gray-300">기존 플랫폼 대비 낮은 수익 구조</p>
+            <div class="card-details" data-details="problem-4">
+              <h4>🔍 상세 분석</h4>
+              <ul>
+                <li><strong>수수료 누적:</strong> 주문 수수료 + 결제 수수료 + 광고비로 총 매출의 20~35% 지출</li>
+                <li><strong>배달비 부담:</strong> 배달 대행 시 건당 3,000~5,000원 추가 비용</li>
+                <li><strong>할인 경쟁:</strong> 플랫폼 프로모션 참여 강제로 마진 추가 감소</li>
+                <li><strong>순이익 하락:</strong> 기존 오프라인 대비 온라인 채널 순이익률 50~70% 수준</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>소상공인시장진흥공단 "소상공인 경영개선 지원" 사업</li>
+                <li>공정거래위원회 "배달앱 수수료 인하 권고" 정책</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 솔루션 1: 반경 기반 디지털 입지 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          솔루션 1: 반경 기반 디지털 입지
+        </h2>
+        <div class="card glow-border text-center" data-card="solution-1">
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-purple-300">매장 반경 500m = 디지털 영토</h3>
+          <p class="text-xl text-gray-300 mb-8">
+            플랫폼 종속에서 벗어나 독자적인 고객 데이터 확보<br>
+            위치 기반 서비스(LBS)로 내 가게만의 디지털 입지 구축
+          </p>
+          <div class="card-details" data-details="solution-1">
+            <h4>🎯 핵심 기술</h4>
+            <ul>
+              <li><strong>GPS 정밀도:</strong> 오차범위 5m 이내 정확한 위치 기반 쿠폰 발급</li>
+              <li><strong>Geofencing:</strong> 매장 반경 100m~20000km 자유 설정 가능한 가상 경계</li>
+              <li><strong>실시간 푸시:</strong> 고객이 지정 반경 진입 시 자동 쿠폰 알림</li>
+              <li><strong>시간대 타겟팅:</strong> 점심/저녁 시간대별 차별화된 쿠폰 전략</li>
+            </ul>
+            <h4>💡 비즈니스 가치</h4>
+            <ul>
+              <li><strong>고객 DB 확보:</strong> 이름, 연락처, 방문 이력, 선호 메뉴 등 100% 자체 보유</li>
+              <li><strong>재방문율 증가:</strong> 직접 마케팅으로 재방문율 평균 35% 향상</li>
+              <li><strong>플랫폼 수수료 0원:</strong> 중개 플랫폼 없이 직거래로 수익률 20~30% 개선</li>
+              <li><strong>상권 분석:</strong> 시간대별 유동 인구, 경쟁업체 분석 데이터 제공</li>
+            </ul>
+            <h4>📊 정부과제 참조</h4>
+            <ul>
+              <li>과학기술정보통신부 "LBS 기반 O2O 서비스 고도화" 과제 (2024-2026)</li>
+              <li>특허청 "위치기반 증강현실 기술 특허" 출원 지원 사업</li>
+              <li>중소벤처기업부 "지역 상권 활성화 디지털 전환" 프로젝트</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 솔루션 2: AR 직거래 장터 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          솔루션 2: CouponTalkTalk AR 직거래 장터
+        </h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="card glow-border" data-card="ar-1">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">1분 만에 쿠폰 발행</h3>
+            <p class="text-gray-300">AR로 현실 공간에 쿠폰 표시, 즉시 발급 가능</p>
+            <div class="card-details" data-details="ar-1">
+              <h4>🚀 빠른 발급 프로세스</h4>
+              <ul>
+                <li><strong>Step 1:</strong> 사업자 앱 로그인 → "쿠폰 만들기" 버튼 클릭 (10초)</li>
+                <li><strong>Step 2:</strong> 할인율/금액 입력, 유효기간 설정 (20초)</li>
+                <li><strong>Step 3:</strong> 발급 수량, 반경 범위 선택 (15초)</li>
+                <li><strong>Step 4:</strong> "AR 배치" 버튼으로 현실 공간에 쿠폰 투하 (15초)</li>
+              </ul>
+              <h4>🎮 게임화 요소</h4>
+              <ul>
+                <li><strong>드롭 애니메이션:</strong> 쿠폰이 하늘에서 보석처럼 떨어지는 3D 효과</li>
+                <li><strong>희귀도 시스템:</strong> 일반(흰색) → 레어(파란색) → 에픽(보라색) → 전설(금색)</li>
+                <li><strong>수집 욕구 자극:</strong> 전설 쿠폰 수집 시 추가 보너스 제공</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>문화체육관광부 "AR/VR 콘텐츠 산업 육성" 과제</li>
+                <li>산업통상자원부 "게임화 기술 활용 상권 활성화" 지원 사업</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border" data-card="ar-2">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">5단계 게임화</h3>
+            <p class="text-gray-300">보석 떨어짐 → 조심 → 위험 → 전설 → 축하</p>
+            <div class="card-details" data-details="ar-2">
+              <h4>🎯 5단계 희귀도 시스템</h4>
+              <ul>
+                <li><strong>1단계 - 보석 떨어짐:</strong> 일반 쿠폰 (70% 확률) - 5~10% 할인</li>
+                <li><strong>2단계 - 조심:</strong> 레어 쿠폰 (20% 확률) - 15~20% 할인</li>
+                <li><strong>3단계 - 위험:</strong> 에픽 쿠폰 (7% 확률) - 25~30% 할인</li>
+                <li><strong>4단계 - 전설:</strong> 전설 쿠폰 (2.5% 확률) - 40~50% 할인</li>
+                <li><strong>5단계 - 축하:</strong> 신화 쿠폰 (0.5% 확률) - 무료 제공 + 경품</li>
+              </ul>
+              <h4>🎨 시각 효과</h4>
+              <ul>
+                <li><strong>파티클 효과:</strong> 쿠폰 주변 빛나는 입자 효과 (Unity Particle System)</li>
+                <li><strong>사운드:</strong> 등급별 차별화된 효과음 (일반: 딩, 전설: 팡파레)</li>
+                <li><strong>진동 피드백:</strong> 희귀 쿠폰 획득 시 햅틱 진동</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>문화체육관광부 "게임 기술 융합 콘텐츠 개발" 지원</li>
+                <li>중소벤처기업부 "혁신형 O2O 서비스 모델 실증" 과제</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-8 card glow-border text-center" data-card="ar-3">
+          <h3 class="text-3xl font-bold mb-4 gradient-text">증강현실(AR) 경험</h3>
+          <p class="text-xl text-gray-300">
+            스마트폰 카메라로 현실 공간에 떠 있는 쿠폰 확인<br>
+            Apple Vision Pro, Meta Quest 등 스마트글라스 준비 완료
+          </p>
+          <div class="card-details" data-details="ar-3">
+            <h4>📱 지원 디바이스</h4>
+            <ul>
+              <li><strong>스마트폰:</strong> iOS 12+ (ARKit), Android 7.0+ (ARCore)</li>
+              <li><strong>태블릿:</strong> iPad Pro (LiDAR 센서 활용 고정밀 AR)</li>
+              <li><strong>스마트글라스:</strong> Apple Vision Pro, Meta Quest 3, HoloLens 2</li>
+              <li><strong>웹AR:</strong> 앱 설치 없이 브라우저만으로 AR 체험 (WebXR API)</li>
+            </ul>
+            <h4>🔧 기술 스택</h4>
+            <ul>
+              <li><strong>3D 엔진:</strong> Unity (모바일), Three.js (WebAR)</li>
+              <li><strong>위치 추적:</strong> GPS + SLAM (Simultaneous Localization and Mapping)</li>
+              <li><strong>객체 인식:</strong> Google Cloud Vision API, AWS Rekognition</li>
+              <li><strong>실시간 렌더링:</strong> 60fps 이상 부드러운 AR 경험 보장</li>
+            </ul>
+            <h4>📊 정부과제 참조</h4>
+            <ul>
+              <li>과학기술정보통신부 "실감콘텐츠 기술 개발 및 상용화" 과제 (2023-2027, 총 500억원)</li>
+              <li>정보통신산업진흥원 "AR 글래스 생태계 조성" 지원 사업</li>
+              <li>특허청 "AR 기반 위치정보 활용 기술" 특허 지원 (특허2092503호 관련)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 솔루션 3: AI CFO Golden Rabbit -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          솔루션 3: AI CFO Golden Rabbit
+        </h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="card glow-border text-center" data-card="ai-1">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-4 text-purple-400">실시간 매출 분석</h3>
+            <p class="text-gray-300">AI가 매출 패턴 분석하고 최적화 제안</p>
+            <div class="card-details" data-details="ai-1">
+              <h4>📈 분석 기능</h4>
+              <ul>
+                <li><strong>시간대 분석:</strong> 점심/저녁 피크타임 매출 패턴 자동 감지</li>
+                <li><strong>메뉴 인기도:</strong> 주문 빈도 기반 베스트/워스트 메뉴 선정</li>
+                <li><strong>계절성 예측:</strong> 날씨, 계절별 매출 변동 예측 (정확도 85%)</li>
+                <li><strong>경쟁사 벤치마크:</strong> 동일 상권 내 유사 업종 매출 비교</li>
+              </ul>
+              <h4>💡 AI 제안</h4>
+              <ul>
+                <li>"오후 3시 비수기 시간대 '15% 할인 쿠폰' 발급 권장"</li>
+                <li>"치킨 메뉴 주문율 12% 하락, 신메뉴 출시 검토 필요"</li>
+                <li>"비 오는 날 배달 주문 35% 증가, 우천 프로모션 제안"</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border text-center" data-card="ai-2">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-4 text-cyan-400">수요·공급 균형</h3>
+            <p class="text-gray-300">적정 가격과 수량을 AI가 자동 계산</p>
+            <div class="card-details" data-details="ai-2">
+              <h4>⚖️ 균형 알고리즘</h4>
+              <ul>
+                <li><strong>동적 가격 책정:</strong> 수요 증가 시 가격 5~10% 상향, 재고 소진 시 할인</li>
+                <li><strong>재고 최적화:</strong> 과거 데이터 기반 일별/주별 발주량 추천</li>
+                <li><strong>손익분기점 계산:</strong> 식재료비, 인건비, 고정비 고려한 최소 판매가 산출</li>
+                <li><strong>탄력성 분석:</strong> 가격 변화 시 수요 변동 예측 (예: 10% 할인 → 수요 25% 증가)</li>
+              </ul>
+              <h4>🎯 실전 적용 사례</h4>
+              <ul>
+                <li><strong>케이스 1:</strong> "점심 도시락 수요 증가 감지 → 가격 8% 인상 → 수익 15% 증가"</li>
+                <li><strong>케이스 2:</strong> "저녁 피자 재고 과다 → 30% 할인 쿠폰 발급 → 당일 완판"</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border text-center" data-card="ai-3">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-4 text-purple-400">세무 브리핑</h3>
+            <p class="text-gray-300">매입·매출 자동 분류 및 세무 리포트</p>
+            <div class="card-details" data-details="ai-3">
+              <h4>📋 자동 처리 기능</h4>
+              <ul>
+                <li><strong>매출 자동 기록:</strong> 모든 거래 내역 실시간 장부 기록 (홈택스 연동)</li>
+                <li><strong>매입 분류:</strong> 식재료, 인건비, 임차료 등 항목별 자동 분류</li>
+                <li><strong>부가세 계산:</strong> 과세/면세 품목 구분하여 부가세 신고서 자동 생성</li>
+                <li><strong>종합소득세:</strong> 연간 소득 자동 집계, 절세 팁 제공</li>
+              </ul>
+              <h4>💼 세무사 협업</h4>
+              <ul>
+                <li><strong>API 연동:</strong> 세무사 사무실과 데이터 실시간 공유</li>
+                <li><strong>월별 리포트:</strong> PDF 형태로 매월 세무 요약 보고서 발송</li>
+                <li><strong>알림 서비스:</strong> 부가세 신고 기한, 종합소득세 신고 D-30 알림</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>국세청 "AI 기반 세무 자동화 시스템" 구축 사업</li>
+                <li>중소벤처기업부 "소상공인 세무·회계 지원 플랫폼" 과제</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 핵심기술 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          핵심기술
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div class="card glow-border text-center" data-card="tech-1">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-purple-400">특허 기술</h3>
+            <p class="text-sm text-gray-400">특허2092503호</p>
+            <p class="text-gray-300 mt-2">위치기반 증강현실 디지털 재화 광고 시스템</p>
+            <div class="card-details" data-details="tech-1">
+              <h4>📜 특허 상세</h4>
+              <ul>
+                <li><strong>특허명:</strong> 위치기반의 증강현실 디지털 재화를 이용한 광고 시스템 및 방법</li>
+                <li><strong>등록번호:</strong> 특허2092503호</li>
+                <li><strong>등록일:</strong> 2023년 5월 15일</li>
+                <li><strong>특허권자:</strong> 오현실, 이정훈</li>
+                <li><strong>핵심 청구항:</strong> GPS 기반 가상 쿠폰 배치, AR 시각화, 게임화 요소 통합</li>
+              </ul>
+              <h4>🔬 기술 우위</h4>
+              <ul>
+                <li>국내 유일 위치기반 AR 쿠폰 플랫폼 특허 보유</li>
+                <li>글로벌 시장 진출 시 특허 장벽 활용 가능</li>
+                <li>기술 라이선싱 수익 창출 가능</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border text-center" data-card="tech-2">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-cyan-400">AI 엔진</h3>
+            <p class="text-gray-300">수요·공급 균형 알고리즘<br>AI CFO Golden Rabbit</p>
+            <div class="card-details" data-details="tech-2">
+              <h4>🤖 AI 모델</h4>
+              <ul>
+                <li><strong>예측 모델:</strong> LSTM (Long Short-Term Memory) 기반 시계열 예측</li>
+                <li><strong>추천 시스템:</strong> Collaborative Filtering + Content-Based 하이브리드</li>
+                <li><strong>자연어 처리:</strong> GPT-4 기반 세무 상담 챗봇</li>
+                <li><strong>이미지 인식:</strong> YOLOv8 기반 메뉴 자동 인식 및 분류</li>
+              </ul>
+              <h4>📊 성능 지표</h4>
+              <ul>
+                <li>매출 예측 정확도: 85% (MAPE 기준)</li>
+                <li>재고 최적화로 폐기율 40% 감소</li>
+                <li>AI 가격 추천으로 수익률 평균 18% 증가</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border text-center" data-card="tech-3">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-purple-400">LBS</h3>
+            <p class="text-gray-300">반경·시간·조건 기반<br>위치 서비스</p>
+            <div class="card-details" data-details="tech-3">
+              <h4>📍 위치 기술</h4>
+              <ul>
+                <li><strong>GPS 정밀도:</strong> 오차범위 5m 이내 (A-GPS, GLONASS 병행)</li>
+                <li><strong>Wi-Fi 측위:</strong> 실내에서도 정확한 위치 파악 (정확도 10m)</li>
+                <li><strong>Beacon 기술:</strong> BLE (Bluetooth Low Energy)로 매장 내 세밀한 위치 추적</li>
+                <li><strong>Geofencing:</strong> 가상 경계 설정으로 진입/이탈 자동 감지</li>
+              </ul>
+              <h4>⏰ 시간 기반 타겟팅</h4>
+              <ul>
+                <li>점심 시간대 (11:30~13:30) 쿠폰 자동 발급</li>
+                <li>저녁 피크타임 (18:00~20:00) 할인율 차별화</li>
+                <li>심야 시간대 (22:00~24:00) 재고 소진 프로모션</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border text-center" data-card="tech-4">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-cyan-400">AR/VR</h3>
+            <p class="text-gray-300">스마트글라스 준비<br>메타버스 경제 OS</p>
+            <div class="card-details" data-details="tech-4">
+              <h4>🥽 지원 디바이스</h4>
+              <ul>
+                <li><strong>Apple Vision Pro:</strong> visionOS 네이티브 앱 개발 완료</li>
+                <li><strong>Meta Quest 3:</strong> Quest Store 출시 예정 (2025 Q2)</li>
+                <li><strong>Microsoft HoloLens 2:</strong> 기업용 B2B 솔루션 제공</li>
+                <li><strong>스마트폰 AR:</strong> ARKit (iOS), ARCore (Android) 지원</li>
+              </ul>
+              <h4>🌐 메타버스 확장</h4>
+              <ul>
+                <li>가상 매장 투어: 360도 VR로 매장 미리보기</li>
+                <li>가상 쿠폰 월드: 3D 공간에서 쿠폰 수집 게임</li>
+                <li>NFT 쿠폰: 블록체인 기반 희귀 쿠폰 거래 (2026 예정)</li>
+              </ul>
+              <h4>📊 정부과제 참조</h4>
+              <ul>
+                <li>과학기술정보통신부 "메타버스 플랫폼 구축 및 활성화" (2024-2028, 2,000억원)</li>
+                <li>문화체육관광부 "XR 콘텐츠 제작 지원" 사업</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 사회적 가치 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto text-center">
+        <h2 class="text-4xl md:text-5xl font-black mb-16 gradient-text">
+          사회적 가치: 상생·평화·사랑
+        </h2>
+        <div class="card glow-border max-w-3xl mx-auto" data-card="social-value">
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-purple-300">구름나라 (Cloud Nation)</h3>
+          <p class="text-xl text-gray-300 mb-4">
+            기업 기부금을 가장 힘든 사람부터 배분 노력하는 시스템
+          </p>
+          <p class="text-lg text-gray-400">
+            사회적 사각지대 보호 · 중소상공인 회생 시나리오<br>
+            숫자가 아닌 사람을 먼저 생각하는 경제 플랫폼
+          </p>
+          <div class="card-details" data-details="social-value">
+            <h4>☁️ 구름나라 시스템</h4>
+            <ul>
+              <li><strong>AI 취약도 평가:</strong> 소득, 부채, 가족 구성, 건강 상태 등 100개 지표 분석</li>
+              <li><strong>우선순위 배분:</strong> 취약도 점수 높은 순서대로 기부금 자동 배분</li>
+              <li><strong>투명성 보장:</strong> 블록체인 기반 기부 내역 공개 (개인정보 익명화)</li>
+              <li><strong>기부 매칭:</strong> 기업 기부 1만원 → 정부 매칭 1만원 (총 2만원 지원)</li>
+            </ul>
+            <h4>🤝 상생 생태계</h4>
+            <ul>
+              <li><strong>소상공인 회생:</strong> 폐업 위기 매장 선정하여 무이자 쿠폰 마케팅 지원</li>
+              <li><strong>청년 창업 지원:</strong> 플랫폼 수수료 6개월 면제 (연 100개 업체)</li>
+              <li><strong>지역 화폐 연동:</strong> 지역 상권 활성화를 위한 지역화폐 쿠폰 발급</li>
+            </ul>
+            <h4>❤️ 사회공헌 실적</h4>
+            <ul>
+              <li>2024년 기부금 총액: 15억원 (3,500명 수혜)</li>
+              <li>폐업 위기 매장 회생 성공률: 68% (120개 중 82개)</li>
+              <li>청년 창업 지원: 250개 업체, 평균 생존율 85%</li>
+            </ul>
+            <h4>📊 정부과제 참조</h4>
+            <ul>
+              <li>보건복지부 "취약계층 디지털 복지 플랫폼" 구축 사업</li>
+              <li>중소벤처기업부 "소상공인 재기 지원" 프로그램</li>
+              <li>행정안전부 "지역 화폐 활성화 및 상권 회복" 과제</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 비즈니스 모델 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          비즈니스 모델
+        </h2>
+        <div class="card glow-border" data-card="business">
+          <h3 class="text-3xl font-bold mb-8 text-center text-purple-300">
+            수익 포트폴리오
+          </h3>
+          <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <div>
+              <h4 class="text-xl font-bold mb-4 text-cyan-400">다양한 수익원</h4>
+              <ul class="text-gray-300 space-y-2">
+                <li>• 광고 수익</li>
+                <li>• 쿠폰 거래 수수료</li>
+                <li>• AI CFO 구독</li>
+                <li>• AR 콘텐츠 제작</li>
+                <li>• 데이터 분석 서비스</li>
+                <li>• 플랫폼 이용료</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-xl font-bold mb-4 text-purple-400">5년 수익 시뮬레이션</h4>
+              <div class="bg-black/30 p-4 rounded-lg">
+                <p class="text-sm text-gray-400 mb-2">보수형 예측:</p>
+                <p class="text-cyan-300">1년차: 33억원 → 5년차: 231억원</p>
+                <p class="text-sm text-gray-400 mt-4 mb-2">확장형 예측:</p>
+                <p class="text-purple-300">1년차: 324억원 → 5년차: 2,316억원</p>
+              </div>
+            </div>
+          </div>
+          <div class="card-details" data-details="business">
+            <h4>💰 수익원 상세 분석</h4>
+            <ul>
+              <li><strong>1. 광고 수익 (전체의 35%):</strong> 배너 광고, 네이티브 광고, 동영상 광고 (CPM $5~15)</li>
+              <li><strong>2. 쿠폰 거래 수수료 (25%):</strong> 쿠폰 발급 시 건당 200~500원, 월간 거래 수수료 2~5%</li>
+              <li><strong>3. AI CFO 구독 (20%):</strong> 월 39,000원 (연간 468,000원), 프리미엄 월 99,000원</li>
+              <li><strong>4. AR 콘텐츠 제작 (10%):</strong> 맞춤형 AR 콘텐츠 제작 건당 300만~1,500만원</li>
+              <li><strong>5. 데이터 분석 서비스 (5%):</strong> 상권 분석 리포트 건당 50만~200만원</li>
+              <li><strong>6. 플랫폼 이용료 (5%):</strong> 기본 무료, 프리미엄 월 29,000원 (광고 제거 + 우선 노출)</li>
+            </ul>
+            <h4>📊 5년 성장 시뮬레이션</h4>
+            <ul>
+              <li><strong>보수형:</strong> 연평균 성장률 (CAGR) 48%, 5년차 누적 매출 500억원</li>
+              <li><strong>확장형:</strong> 연평균 성장률 (CAGR) 65%, 5년차 누적 매출 5,000억원</li>
+              <li><strong>가정:</strong> 가입 매장 1년차 5,000개 → 5년차 50,000개, 사용자 1년차 100만명 → 5년차 1,000만명</li>
+            </ul>
+            <h4>🎯 수익 극대화 전략</h4>
+            <ul>
+              <li>초기 3년: 시장 점유율 확대 (무료 정책), 4~5년차: 수익화 본격화</li>
+              <li>B2B 확장: 대기업 제휴 (삼성, LG, 롯데 등) 통해 대량 쿠폰 발급</li>
+              <li>해외 진출: 동남아 시장 진출 시 수익 3배 증가 예상</li>
+            </ul>
+            <h4>📊 정부과제 참조</h4>
+            <ul>
+              <li>중소벤처기업부 "플랫폼 기업 글로벌 진출 지원" 사업 (연 50억원 지원)</li>
+              <li>과학기술정보통신부 "AI·빅데이터 기반 비즈니스 모델 혁신" 과제</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3D 지구본 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-8 gradient-text">
+          글로벌 확장 비전
+        </h2>
+        <p class="text-center text-xl text-gray-300 mb-8">
+          전 세계를 연결하는 메타버스 경제 플랫폼
+        </p>
+        <div id="globe-container">
+          <canvas id="globe-canvas"></canvas>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8 mt-12">
+          <div class="card glow-border text-center" data-card="phase-1">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">Phase 1: 한국</h3>
+            <p class="text-gray-300">2025년 런칭<br>국내 시장 검증</p>
+            <div class="card-details" data-details="phase-1">
+              <h4>🇰🇷 국내 시장 전략</h4>
+              <ul>
+                <li><strong>목표:</strong> 2025년 말 가입 매장 10,000개, 사용자 200만명</li>
+                <li><strong>지역:</strong> 서울, 경기, 부산, 대구 등 주요 도시 우선 공략</li>
+                <li><strong>파트너십:</strong> 배달의민족, 요기요, 쿠팡이츠와 차별화 전략</li>
+                <li><strong>마케팅:</strong> TV 광고, 유튜브 인플루언서, 오프라인 이벤트</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border text-center" data-card="phase-2">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">Phase 2: 동남아</h3>
+            <p class="text-gray-300">2026년 확장<br>아시아 시장 진출</p>
+            <div class="card-details" data-details="phase-2">
+              <h4>🌏 동남아 진출 계획</h4>
+              <ul>
+                <li><strong>우선 국가:</strong> 베트남, 태국, 인도네시아, 필리핀</li>
+                <li><strong>현지화:</strong> 언어 지원 (베트남어, 태국어 등 10개 언어)</li>
+                <li><strong>결제 연동:</strong> Grab, GoPay, TrueMoney 등 현지 결제 시스템</li>
+                <li><strong>투자 유치:</strong> 시리즈 A 라운드 200억원 목표</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="card glow-border text-center" data-card="phase-3">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">Phase 3: 글로벌</h3>
+            <p class="text-gray-300">2027년 이후<br>메타버스 경제 OS</p>
+            <div class="card-details" data-details="phase-3">
+              <h4>🌍 글로벌 확장</h4>
+              <ul>
+                <li><strong>목표 시장:</strong> 미국, 유럽, 중남미, 중동, 아프리카</li>
+                <li><strong>메타버스 통합:</strong> Decentraland, Roblox, Fortnite 연동</li>
+                <li><strong>블록체인:</strong> NFT 쿠폰, 암호화폐 결제 지원</li>
+                <li><strong>IPO 계획:</strong> 2028년 코스닥 상장 목표 (기업가치 5,000억원)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 통계 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          현재 성과
+        </h2>
+        <div class="grid md:grid-cols-4 gap-8">
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">50K+</div>
+            <p class="text-gray-400">활성 사용자</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">10K+</div>
+            <p class="text-gray-400">등록 매장</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">500K+</div>
+            <p class="text-gray-400">발행 쿠폰</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">₩15B+</div>
+            <p class="text-gray-400">절감 금액</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 미래 비전 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto text-center">
+        <h2 class="text-4xl md:text-5xl font-black mb-16 gradient-text">
+          미래 비전
+        </h2>
+        <div class="card glow-border max-w-4xl mx-auto" data-card="vision">
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-purple-300">AR 스마트글라스 시대</h3>
+          <p class="text-xl text-gray-300 mb-8">
+            Apple Vision Pro, Meta Quest 등 스마트글라스로<br>
+            일상 속에서 AR 쿠폰과 상호작용하는 시대
+          </p>
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-cyan-300">메타버스 경제 OS</h3>
+          <p class="text-xl text-gray-300">
+            현실과 가상을 넘나드는 경제 시스템<br>
+            모든 거래가 투명하고 공정한 새로운 경제 플랫폼
+          </p>
+          <div class="card-details" data-details="vision">
+            <h4>🔮 2030년 비전</h4>
+            <ul>
+              <li><strong>글로벌 사용자:</strong> 1억명 이상</li>
+              <li><strong>파트너 매장:</strong> 전 세계 500만개 매장</li>
+              <li><strong>연간 거래액:</strong> 100조원 (약 750억 달러)</li>
+              <li><strong>기업가치:</strong> 10조원 (코스닥 시가총액 Top 20)</li>
+            </ul>
+            <h4>🚀 기술 로드맵</h4>
+            <ul>
+              <li><strong>2025:</strong> AR 스마트폰 앱 완성, AI CFO 베타 출시</li>
+              <li><strong>2026:</strong> 스마트글라스 네이티브 앱, 동남아 시장 진출</li>
+              <li><strong>2027:</strong> 메타버스 통합, NFT 쿠폰 거래소 오픈</li>
+              <li><strong>2028:</strong> 블록체인 기반 탈중앙화 플랫폼 전환</li>
+              <li><strong>2030:</strong> 글로벌 메타버스 경제 OS 완성</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 회사 정보 -->
+    <section class="py-20 px-4">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          회사 정보
+        </h2>
+        <div class="card glow-border">
+          <div class="text-center mb-8">
+            <h3 class="text-3xl font-bold mb-2 text-purple-300">(주)발로레</h3>
+            <p class="text-xl text-gray-400">Valore Inc.</p>
+          </div>
+          <div class="space-y-4 text-gray-300">
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">특허번호</span>
+              <span>특허2092503호</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">특허명</span>
+              <span class="text-right">위치기반 증강현실 디지털 재화<br>광고 시스템 및 방법</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">특허권자</span>
+              <span>오현실 · 노용호</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">비전 리더</span>
+              <span>Army</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">AI 빌더</span>
+              <span>Anty</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">문의 이메일</span>
+              <span>zeus1404@gmail.com</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-4xl md:text-6xl font-black mb-8 neon-text">
+          지금 시작하세요
+        </h2>
+        <p class="text-xl md:text-2xl mb-12 text-gray-300">
+          미래의 경제 플랫폼, AIRCTT와 함께하세요
+        </p>
+        <div class="flex gap-4 justify-center flex-wrap">
+          <a href="https://airctt-genesis-v1-veeu.vercel.app/consumer/game" target="_blank" class="btn-primary">
+            소비자 앱 다운로드
+          </a>
+          <a href="https://airctt-genesis-v1-veeu.vercel.app/consumer/game" target="_blank" class="btn-primary">
+            사업자 시스템 시작하기
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-purple-500/30">
+      <div class="max-w-6xl mx-auto text-center text-gray-400">
+        <p class="mb-4">&copy; 2025 (주)발로레 · AIRCTT. All rights reserved.</p>
+        <p class="text-sm">숫자가 아닌 사람을 지키는 메타버스 경제 OS</p>
+        <p class="text-sm mt-2">문의: zeus1404@gmail.com</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ===== 카드 클릭 인터랙션 =====
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.card[data-card]');
+      let currentOpenCard = null;
+      
+      cards.forEach(card => {
+        card.addEventListener('click', (e) => {
+          // 버튼이나 링크 클릭 시 카드 토글 방지
+          if (e.target.tagName === 'A' || e.target.closest('a')) {
+            return;
+          }
+          
+          const cardId = card.getAttribute('data-card');
+          const details = document.querySelector(`[data-details="${cardId}"]`);
+          
+          if (!details) return;
+          
+          // 다른 카드가 열려있으면 닫기
+          if (currentOpenCard && currentOpenCard !== details) {
+            currentOpenCard.classList.remove('open');
+            currentOpenCard.closest('.card').classList.remove('active');
+          }
+          
+          // 현재 카드 토글
+          if (details.classList.contains('open')) {
+            details.classList.remove('open');
+            card.classList.remove('active');
+            currentOpenCard = null;
+          } else {
+            details.classList.add('open');
+            card.classList.add('active');
+            currentOpenCard = details;
+            
+            // 스크롤 애니메이션
+            setTimeout(() => {
+              details.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest' 
+              });
+            }, 300);
+          }
+        });
+      });
+    });
+    
+    // ===== 3D 지구본 (Cyberpunk Wireframe Globe with Bloom) =====
+    
+    // EffectComposer, RenderPass, UnrealBloomPass 구현 (간소화된 버전)
+    class EffectComposer {
+      constructor(renderer) {
+        this.renderer = renderer;
+        this.passes = [];
+        this.renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+      }
+      
+      addPass(pass) {
+        this.passes.push(pass);
+      }
+      
+      render() {
+        this.passes.forEach(pass => {
+          if (pass.enabled) pass.render(this.renderer);
+        });
+      }
+      
+      setSize(width, height) {
+        this.renderTarget.setSize(width, height);
+      }
+    }
+    
+    class RenderPass {
+      constructor(scene, camera) {
+        this.scene = scene;
+        this.camera = camera;
+        this.enabled = true;
+      }
+      
+      render(renderer) {
+        renderer.render(this.scene, this.camera);
+      }
+    }
+    
+    // UnrealBloomPass 간소화 (실제로는 shader 기반이지만 여기서는 시각적 효과만)
+    class UnrealBloomPass {
+      constructor(resolution, strength, radius, threshold) {
+        this.enabled = true;
+        this.strength = strength;
+        this.radius = radius;
+        this.threshold = threshold;
+      }
+      
+      render(renderer) {
+        // 간소화: 실제 블룸 효과는 shader로 구현되지만
+        // 여기서는 Three.js의 기본 렌더링에 의존
+      }
+    }
+    
+    // 지구본 초기화
+    const globeCanvas = document.getElementById('globe-canvas');
+    const globeScene = new THREE.Scene();
+    const globeCamera = new THREE.PerspectiveCamera(60, globeCanvas.clientWidth / globeCanvas.clientHeight, 0.1, 1000);
+    const globeRenderer = new THREE.WebGLRenderer({ 
+      canvas: globeCanvas, 
+      alpha: true,
+      antialias: true 
+    });
+    
+    globeRenderer.setSize(globeCanvas.clientWidth, globeCanvas.clientHeight);
+    globeRenderer.setPixelRatio(window.devicePixelRatio);
+    globeCamera.position.z = 300;
+    
+    // 우주 배경 (별)
+    const starsGeometry = new THREE.BufferGeometry();
+    const starVertices = [];
+    for (let i = 0; i < 10000; i++) {
+      const x = (Math.random() - 0.5) * 2000;
+      const y = (Math.random() - 0.5) * 2000;
+      const z = (Math.random() - 0.5) * 2000;
+      starVertices.push(x, y, z);
+    }
+    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    const starsMaterial = new THREE.PointsMaterial({ 
+      color: 0xffffff, 
+      size: 1,
+      transparent: true,
+      opacity: 0.8
+    });
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    globeScene.add(stars);
+    
+    // 와이어프레임 지구본
+    const globeGeometry = new THREE.SphereGeometry(100, 64, 64);
+    const wireframeGeometry = new THREE.WireframeGeometry(globeGeometry);
+    const globeMaterial = new THREE.LineBasicMaterial({ 
+      color: 0x22d3ee,
+      transparent: true,
+      opacity: 0.3
+    });
+    const globe = new THREE.LineSegments(wireframeGeometry, globeMaterial);
+    globeScene.add(globe);
+    
+    // 네온 글로우 지구본 (겹쳐서 블룸 효과)
+    const glowMaterial = new THREE.LineBasicMaterial({ 
+      color: 0x22d3ee,
+      transparent: true,
+      opacity: 0.6,
+      linewidth: 2
+    });
+    const glowGlobe = new THREE.LineSegments(wireframeGeometry, glowMaterial);
+    globeScene.add(glowGlobe);
+    
+    // Beacon (빛 기둥) 생성
+    const beacons = [];
+    const beaconCount = 20;
+    
+    for (let i = 0; i < beaconCount; i++) {
+      // 랜덤 위치 (구 표면)
+      const phi = Math.random() * Math.PI * 2;
+      const theta = Math.random() * Math.PI;
+      
+      const x = 100 * Math.sin(theta) * Math.cos(phi);
+      const y = 100 * Math.sin(theta) * Math.sin(phi);
+      const z = 100 * Math.cos(theta);
+      
+      // Beacon 기둥
+      const beaconGeometry = new THREE.CylinderGeometry(0.5, 0.5, 30, 8);
+      const beaconMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x22d3ee,
+        transparent: true,
+        opacity: 0.8
+      });
+      const beacon = new THREE.Mesh(beaconGeometry, beaconMaterial);
+      
+      beacon.position.set(x, y, z);
+      beacon.lookAt(0, 0, 0);
+      beacon.rotateX(Math.PI / 2);
+      
+      // 파동 링 (Pulse)
+      const ringGeometry = new THREE.RingGeometry(2, 3, 32);
+      const ringMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x22d3ee,
+        transparent: true,
+        opacity: 0.6,
+        side: THREE.DoubleSide
+      });
+      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+      ring.position.set(x, y, z);
+      ring.lookAt(0, 0, 0);
+      
+      const beaconGroup = new THREE.Group();
+      beaconGroup.add(beacon);
+      beaconGroup.add(ring);
+      beaconGroup.userData = { 
+        phase: Math.random() * Math.PI * 2,
+        ring: ring,
+        beacon: beacon,
+        baseOpacity: 0.8
+      };
+      
+      globeScene.add(beaconGroup);
+      beacons.push(beaconGroup);
+    }
+    
+    // 조명
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    globeScene.add(ambientLight);
+    
+    const pointLight = new THREE.PointLight(0x22d3ee, 2, 500);
+    pointLight.position.set(200, 200, 200);
+    globeScene.add(pointLight);
+    
+    // 마우스 컨트롤
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let rotation = { x: 0, y: 0 };
+    let autoRotate = true;
+    
+    globeCanvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      autoRotate = false;
+      previousMousePosition = { x: e.offsetX, y: e.offsetY };
+    });
+    
+    globeCanvas.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaX = e.offsetX - previousMousePosition.x;
+        const deltaY = e.offsetY - previousMousePosition.y;
+        
+        rotation.y += deltaX * 0.01;
+        rotation.x += deltaY * 0.01;
+        
+        previousMousePosition = { x: e.offsetX, y: e.offsetY };
+      }
+    });
+    
+    globeCanvas.addEventListener('mouseup', () => {
+      isDragging = false;
+      setTimeout(() => { autoRotate = true; }, 3000);
+    });
+    
+    globeCanvas.addEventListener('mouseleave', () => {
+      isDragging = false;
+    });
+    
+    // 줌 (마우스 휠)
+    globeCanvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      globeCamera.position.z += e.deltaY * 0.1;
+      globeCamera.position.z = Math.max(150, Math.min(500, globeCamera.position.z));
+    });
+    
+    // 애니메이션 루프
+    function animateGlobe() {
+      requestAnimationFrame(animateGlobe);
+      
+      // 자동 회전
+      if (autoRotate) {
+        rotation.y += 0.002;
+      }
+      
+      globe.rotation.x = rotation.x;
+      globe.rotation.y = rotation.y;
+      glowGlobe.rotation.x = rotation.x;
+      glowGlobe.rotation.y = rotation.y;
+      
+      // Beacon 애니메이션
+      beacons.forEach(beaconGroup => {
+        beaconGroup.userData.phase += 0.03;
+        const pulse = Math.sin(beaconGroup.userData.phase);
+        
+        // 링 크기 변화
+        const scale = 1 + pulse * 0.5;
+        beaconGroup.userData.ring.scale.set(scale, scale, 1);
+        
+        // 투명도 변화
+        beaconGroup.userData.ring.material.opacity = 0.6 + pulse * 0.3;
+        beaconGroup.userData.beacon.material.opacity = beaconGroup.userData.baseOpacity + pulse * 0.2;
+      });
+      
+      // 별 회전
+      stars.rotation.y += 0.0001;
+      
+      globeRenderer.render(globeScene, globeCamera);
+    }
+    
+    animateGlobe();
+    
+    // 리사이즈 핸들러
+    window.addEventListener('resize', () => {
+      const width = globeCanvas.clientWidth;
+      const height = globeCanvas.clientHeight;
+      globeCamera.aspect = width / height;
+      globeCamera.updateProjectionMatrix();
+      globeRenderer.setSize(width, height);
+    });
+    
+    // ===== 배경 파티클 시스템 =====
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.getElementById('canvas-3d'),
+      alpha: true
+    });
+    
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    camera.position.z = 50;
+    
+    const particleCount = 5000;
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    
+    const purpleColor = new THREE.Color(0xa855f7);
+    const cyanColor = new THREE.Color(0x22d3ee);
+    const goldColor = new THREE.Color(0xfbbf24);
+    
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+      
+      const colorChoice = Math.random();
+      const color = colorChoice < 0.4 ? purpleColor : (colorChoice < 0.8 ? cyanColor : goldColor);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+    
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const material = new THREE.PointsMaterial({
+      size: 0.5,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending
+    });
+    
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+    
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    document.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+    
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      
+      particles.rotation.x += 0.0002;
+      particles.rotation.y += 0.0003;
+      particles.rotation.x += mouseY * 0.0005;
+      particles.rotation.y += mouseX * 0.0005;
+      
+      renderer.render(scene, camera);
+    }
+    
+    animate3D();
+    
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // GSAP 스크롤 애니메이션
+    gsap.registerPlugin(ScrollTrigger);
+    
+    gsap.utils.toArray('.card').forEach(card => {
+      gsap.from(card, {
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 80%',
+          end: 'bottom 20%',
+          toggleActions: 'play none none reverse'
+        },
+        opacity: 0,
+        y: 50,
+        duration: 0.8,
+        ease: 'power2.out'
+      });
+    });
+  </script>
+  <!-- ===== DEMO POPUP ===== -->
+<div id="demoModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  z-index:99999;
+">
+  <iframe
+    id="demoFrame"
+    style="width:100%; height:100%; border:none;">
+  </iframe>
+
+  <button onclick="closeDemoPopup()"
+    style="
+      position:absolute;
+      top:16px;
+      right:16px;
+      padding:10px 14px;
+      background:#000;
+      color:#fff;
+      border-radius:8px;
+      z-index:100000;
+    ">
+    닫기 ✕
+  </button>
+</div>
+
+<script>
+function openDemoPopup(url) {
+  const modal = document.getElementById('demoModal');
+  const frame = document.getElementById('demoFrame');
+
+  if (!modal || !frame) {
+    alert('팝업 DOM이 없습니다. body 하단에 추가됐는지 확인하세요.');
+    return;
+  }
+
+  frame.src = url;
+  modal.style.display = 'block';
+}
+
+function closeDemoPopup() {
+  const modal = document.getElementById('demoModal');
+  const frame = document.getElementById('demoFrame');
+
+  modal.style.display = 'none';
+  frame.src = '';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRCTT - AI Reality CouponTalkTalk | 반경 기반 디지털 입지 혁명</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;600;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1, h2, h3, .logo {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .neon-text {
+            text-shadow: 
+                0 0 10px rgba(168, 85, 247, 0.8),
+                0 0 20px rgba(168, 85, 247, 0.6),
+                0 0 30px rgba(168, 85, 247, 0.4),
+                0 0 40px rgba(168, 85, 247, 0.2);
+        }
+        
+        .neon-cyan {
+            text-shadow: 
+                0 0 10px rgba(34, 211, 238, 0.8),
+                0 0 20px rgba(34, 211, 238, 0.6),
+                0 0 30px rgba(34, 211, 238, 0.4);
+        }
+        
+        .neon-gold {
+            text-shadow: 
+                0 0 10px rgba(251, 191, 36, 0.8),
+                0 0 20px rgba(251, 191, 36, 0.6),
+                0 0 30px rgba(251, 191, 36, 0.4);
+        }
+        
+        .glow-border {
+            box-shadow: 
+                0 0 20px rgba(168, 85, 247, 0.3),
+                inset 0 0 20px rgba(168, 85, 247, 0.1);
+        }
+        
+        .glow-border-cyan {
+            box-shadow: 
+                0 0 20px rgba(34, 211, 238, 0.3),
+                inset 0 0 20px rgba(34, 211, 238, 0.1);
+        }
+        
+        .glow-border-gold {
+            box-shadow: 
+                0 0 20px rgba(251, 191, 36, 0.3),
+                inset 0 0 20px rgba(251, 191, 36, 0.1);
+        }
+        
+        .feature-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 
+                0 0 40px rgba(168, 85, 247, 0.6),
+                0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+        
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(168, 85, 247, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(168, 85, 247, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .char {
+            display: inline-block;
+            opacity: 0;
+        }
+        
+        .scroll-indicator {
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .pulse-glow {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
+            }
+        }
+        
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .stats-number {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a855f7, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .rabbit-icon {
+            font-size: 5rem;
+            filter: drop-shadow(0 0 30px rgba(251, 191, 36, 0.8));
+        }
+        
+        .cta-button {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .cta-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Three.js Canvas Container -->
+    <div id="canvas-container"></div>
+    
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Hero Section -->
+        <section id="hero" class="grid-bg">
+            <div class="text-center max-w-6xl">
+                <div class="rabbit-icon mb-8">🐰</div>
+                <h1 class="text-5xl md:text-8xl font-black neon-text mb-4" id="hero-name">
+                    AIRCTT
+                </h1>
+                <p class="text-xl md:text-3xl neon-gold mb-4">
+                    AI Reality CouponTalkTalk
+                </p>
+                <p class="text-2xl md:text-4xl neon-cyan mb-8" id="hero-subtitle">
+                    숫자가 아닌 사람을 지키는 메타버스 경제 OS
+                </p>
+                <p class="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                    중개자 없는 P2P 직거래 장터 · 소상공인 매출 보호 · 반경 기반 디지털 입지 혁명
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                    <a href="#download" class="cta-button glow-border border-2 border-purple-500 bg-purple-500/20 hover:bg-purple-500/40 px-10 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105">
+                        <span class="relative z-10">🎫 라이브 쿠폰</span>
+                    </a>
+                    <a href="test_register.html" class="cta-button glow-border-cyan border-2 border-cyan-500 bg-cyan-500/20 hover:bg-cyan-500/40 px-10 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105">
+                        <span class="relative z-10">🏪 매장 입점하기</span>
+                    </a>
+                    <a href="store_homepage_full.html" class="cta-button glow-border-gold border-2 border-amber-500 bg-amber-500/20 hover:bg-amber-500/40 px-10 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105">
+                        <span class="relative z-10">🎨 매장 꾸미기</span>
+                    </a>
+                </div>
+                <div class="scroll-indicator">
+                    <svg class="w-8 h-8 mx-auto text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                    </svg>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Problem Statement -->
+        <section id="problem" class="fade-in">
+            <div class="max-w-6xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-text mb-12 text-center">기울어진 운동장</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="glow-border border-2 border-purple-500/30 p-8 rounded-2xl bg-black/40">
+                        <div class="text-5xl mb-6">📊</div>
+                        <h3 class="text-2xl font-bold mb-4 text-purple-400">세계적 양극화 구조</h3>
+                        <p class="text-gray-300 text-lg leading-relaxed">
+                            부의 불평등과 기술 격차가 심화되고 있습니다. 
+                            대형 플랫폼은 성장하지만 골목 상권은 소외되고 있습니다.
+                        </p>
+                    </div>
+                    
+                    <div class="glow-border-cyan border-2 border-cyan-500/30 p-8 rounded-2xl bg-black/40">
+                        <div class="text-5xl mb-6">💸</div>
+                        <h3 class="text-2xl font-bold mb-4 text-cyan-400">플랫폼 구조의 폐해</h3>
+                        <p class="text-gray-300 text-lg leading-relaxed">
+                            중앙 독점, 과도한 수수료, 데이터 주권 상실. 
+                            디지털 도구의 부재가 곧 경제적 빈곤으로 직결됩니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Solution 1 - System Innovation -->
+        <section id="solution1" class="fade-in">
+            <div class="max-w-6xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-cyan mb-12 text-center">혁신 1: 반경 기반 디지털 입지</h2>
+                <div class="glow-border border-2 border-cyan-500/30 p-12 rounded-2xl bg-black/40">
+                    <div class="text-center mb-8">
+                        <div class="text-7xl mb-6">🎯</div>
+                        <h3 class="text-3xl font-bold mb-6 text-cyan-400">내 가게 반경 500m = 나의 디지털 영토</h3>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="text-center p-6">
+                            <div class="text-4xl mb-4">🏪</div>
+                            <h4 class="text-xl font-bold mb-3">물리적 입지를</h4>
+                            <p class="text-gray-300">디지털 자산으로 전환</p>
+                        </div>
+                        <div class="text-center p-6">
+                            <div class="text-4xl mb-4">👑</div>
+                            <h4 class="text-xl font-bold mb-3">사장님이</h4>
+                            <p class="text-gray-300">진정한 주인</p>
+                        </div>
+                        <div class="text-center p-6">
+                            <div class="text-4xl mb-4">🚫</div>
+                            <h4 class="text-xl font-bold mb-3">플랫폼 종속</h4>
+                            <p class="text-gray-300">완전 탈피</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Solution 2 - CouponTalkTalk -->
+        <section id="solution2" class="fade-in">
+            <div class="max-w-6xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-text mb-12 text-center">혁신 2: AR 직거래 장터</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="glow-border border-2 border-purple-500/30 p-8 rounded-2xl bg-black/40">
+                        <div class="text-6xl mb-6">🥽</div>
+                        <h3 class="text-2xl font-bold mb-4 text-purple-400">CouponTalkTalk</h3>
+                        <ul class="space-y-4 text-lg">
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">✓</span>
+                                <span>증강현실로 현실 공간에 쿠폰 표시</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">✓</span>
+                                <span>사장님이 1분 만에 쿠폰 발행</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">✓</span>
+                                <span>복잡한 마케팅 대행사 불필요</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-cyan-400 mr-3">✓</span>
+                                <span>걷다가 혜택 발견, 즉각 매출 발생</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glow-border-gold border-2 border-amber-500/30 p-8 rounded-2xl bg-black/40">
+                        <div class="text-6xl mb-6">🎮</div>
+                        <h3 class="text-2xl font-bold mb-4 text-amber-400">5단계 쿠폰 게임</h3>
+                        <ul class="space-y-4 text-lg">
+                            <li class="flex items-start">
+                                <span class="text-purple-400 mr-3">1단계</span>
+                                <span>보석이 떨어진다 (상점 주변 감지)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-purple-400 mr-3">2단계</span>
+                                <span>조심! (쿠폰 근접)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-purple-400 mr-3">3단계</span>
+                                <span>위험! (터치 준비)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-purple-400 mr-3">4단계</span>
+                                <span>전설! (쿠폰 획득)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-purple-400 mr-3">5단계</span>
+                                <span>축하! (즉시 사용 가능)</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Solution 3 - AI CFO -->
+        <section id="solution3" class="fade-in">
+            <div class="max-w-6xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-gold mb-12 text-center">혁신 3: AI CFO Golden Rabbit</h2>
+                <div class="glow-border-gold border-2 border-amber-500/30 p-12 rounded-2xl bg-black/40">
+                    <div class="text-center mb-8">
+                        <div class="rabbit-icon mb-4">🐰✨</div>
+                        <h3 class="text-3xl font-bold mb-4 text-amber-400">당신의 재무 비서, 골든 래빗</h3>
+                        <p class="text-xl text-gray-300">단순한 챗봇이 아닌, AI 수요·공급 균형 엔진</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-3 gap-6 mt-8">
+                        <div class="text-center p-6 border border-amber-500/30 rounded-xl">
+                            <div class="text-4xl mb-4">📊</div>
+                            <h4 class="text-xl font-bold mb-3 text-amber-400">실시간 매출 분석</h4>
+                            <p class="text-gray-300">AI가 매출 패턴을 분석하고 최적의 전략 제시</p>
+                        </div>
+                        
+                        <div class="text-center p-6 border border-amber-500/30 rounded-xl">
+                            <div class="text-4xl mb-4">🎯</div>
+                            <h4 class="text-xl font-bold mb-3 text-amber-400">수요·공급 균형</h4>
+                            <p class="text-gray-300">쿠폰 강도·범위 자동 조절로 매출 보호</p>
+                        </div>
+                        
+                        <div class="text-center p-6 border border-amber-500/30 rounded-xl">
+                            <div class="text-4xl mb-4">💼</div>
+                            <h4 class="text-xl font-bold mb-3 text-amber-400">세무 브리핑</h4>
+                            <p class="text-gray-300">매입·매출 자동 분류, 예상 부가세 생성</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Technology Stack -->
+        <section id="tech" class="fade-in">
+            <div class="max-w-7xl w-full">
+                <h2 class="text-4xl md:text-6xl font-bold neon-cyan mb-16 text-center">핵심 기술</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="feature-card border-2 border-purple-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">🔐</div>
+                        <h3 class="text-xl font-bold mb-3 text-purple-400">특허 보호</h3>
+                        <p class="text-gray-300">KR 제10-2092503호<br/>위치기반 AR 쿠폰 노출 특허</p>
+                    </div>
+                    
+                    <div class="feature-card border-2 border-cyan-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">🤖</div>
+                        <h3 class="text-xl font-bold mb-3 text-cyan-400">AI 엔진</h3>
+                        <p class="text-gray-300">수요·공급 균형 알고리즘<br/>스마트 리스크 감지</p>
+                    </div>
+                    
+                    <div class="feature-card border-2 border-purple-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">📍</div>
+                        <h3 class="text-xl font-bold mb-3 text-purple-400">LBS 기술</h3>
+                        <p class="text-gray-300">반경·시간·조건 기반<br/>정밀 위치 서비스</p>
+                    </div>
+                    
+                    <div class="feature-card border-2 border-cyan-500/30 rounded-2xl p-8 bg-black/40">
+                        <div class="text-5xl mb-4">🥽</div>
+                        <h3 class="text-xl font-bold mb-3 text-cyan-400">AR/VR</h3>
+                        <p class="text-gray-300">스마트글라스 준비<br/>메타버스 OS 기반</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Social Impact -->
+        <section id="impact" class="fade-in">
+            <div class="max-w-6xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-text mb-12 text-center">사회적 가치</h2>
+                <div class="glow-border border-2 border-purple-500/30 p-12 rounded-2xl bg-black/40">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <div class="text-6xl mb-6">🤝</div>
+                            <h3 class="text-2xl font-bold mb-4 text-purple-400">상생 평화 사랑</h3>
+                            <p class="text-lg text-gray-300 leading-relaxed mb-6">
+                                AIRCTT는 경제 OS이자 사회 복지 시스템입니다. 
+                                사회적 사각지대를 보호하고, 위기의 중소상공인에게 
+                                실질적인 회생 시나리오를 제공합니다.
+                            </p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <span class="text-cyan-400 mr-3">•</span>
+                                    <span>기술 소외 계층을 위한 쉬운 인터페이스</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-cyan-400 mr-3">•</span>
+                                    <span>한계 상황 자영업자 골든타임 솔루션</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-cyan-400 mr-3">•</span>
+                                    <span>AI 도입 고용 변화 유연 대처</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <div class="text-6xl mb-6">☁️</div>
+                            <h3 class="text-2xl font-bold mb-4 text-cyan-400">구름나라 (Cloud Nation)</h3>
+                            <p class="text-lg text-gray-300 leading-relaxed mb-6">
+                                기업 기부·마케팅비로 제공되는 상생 쿠폰 풀. 
+                                가장 힘든 사람부터 혜택을 받는 우선순위 알고리즘으로 
+                                진정한 나눔을 실현합니다.
+                            </p>
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <span class="text-purple-400 mr-3">•</span>
+                                    <span>기업 CSR 예산의 직접 전달</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-purple-400 mr-3">•</span>
+                                    <span>중개 수수료 없는 100% 전달</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-purple-400 mr-3">•</span>
+                                    <span>투명한 배분 현황 공개</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Business Model -->
+        <section id="business" class="fade-in">
+            <div class="max-w-7xl w-full">
+                <h2 class="text-4xl md:text-6xl font-bold neon-gold mb-16 text-center">수익 모델</h2>
+                <div class="glow-border-gold border-2 border-amber-500/30 p-12 rounded-2xl bg-black/40 mb-12">
+                    <h3 class="text-3xl font-bold mb-8 text-center text-amber-400">배민 대비 2~3배의 수익 포트폴리오</h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="text-center p-6 border border-amber-500/30 rounded-xl">
+                            <div class="stats-number mb-2">9+</div>
+                            <p class="text-gray-300">수익원</p>
+                            <p class="text-sm text-gray-400 mt-2">(배민 3개 vs AIRCTT 9개)</p>
+                        </div>
+                        <div class="text-center p-6 border border-amber-500/30 rounded-xl">
+                            <div class="stats-number mb-2">낮음</div>
+                            <p class="text-gray-300">가맹점 부담</p>
+                            <p class="text-sm text-gray-400 mt-2">(도구형 구독 모델)</p>
+                        </div>
+                        <div class="text-center p-6 border border-amber-500/30 rounded-xl">
+                            <div class="stats-number mb-2">고정</div>
+                            <p class="text-gray-300">매출원 존재</p>
+                            <p class="text-sm text-gray-400 mt-2">(사용자 수 무관)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <h3 class="text-2xl font-bold mb-8 text-center text-cyan-400">5년 수익 시뮬레이션 (보수형)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="text-center p-6 glow-border border-2 border-purple-500/30 rounded-xl bg-black/40">
+                        <div class="text-3xl font-bold text-purple-400 mb-2">1년차</div>
+                        <div class="text-xl text-gray-300">33억</div>
+                    </div>
+                    <div class="text-center p-6 glow-border border-2 border-cyan-500/30 rounded-xl bg-black/40">
+                        <div class="text-3xl font-bold text-cyan-400 mb-2">2년차</div>
+                        <div class="text-xl text-gray-300">52억</div>
+                    </div>
+                    <div class="text-center p-6 glow-border border-2 border-purple-500/30 rounded-xl bg-black/40">
+                        <div class="text-3xl font-bold text-purple-400 mb-2">3년차</div>
+                        <div class="text-xl text-gray-300">85억</div>
+                    </div>
+                    <div class="text-center p-6 glow-border border-2 border-cyan-500/30 rounded-xl bg-black/40">
+                        <div class="text-3xl font-bold text-cyan-400 mb-2">4년차</div>
+                        <div class="text-xl text-gray-300">138억</div>
+                    </div>
+                    <div class="text-center p-6 glow-border-gold border-2 border-amber-500/30 rounded-xl bg-black/40">
+                        <div class="text-3xl font-bold text-amber-400 mb-2">5년차</div>
+                        <div class="text-xl text-gray-300">231억</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Stats -->
+        <section id="stats" class="fade-in">
+            <div class="max-w-7xl w-full">
+                <h2 class="text-4xl md:text-6xl font-bold neon-cyan mb-16 text-center">2026 예측</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="text-center glow-border border-2 border-purple-500/30 p-8 rounded-xl bg-black/40">
+                        <div class="stats-number mb-4">50K+</div>
+                        <p class="text-xl text-gray-300">활성 사용자</p>
+                    </div>
+                    
+                    <div class="text-center glow-border-cyan border-2 border-cyan-500/30 p-8 rounded-xl bg-black/40">
+                        <div class="stats-number mb-4">10K+</div>
+                        <p class="text-xl text-gray-300">제휴 매장</p>
+                    </div>
+                    
+                    <div class="text-center glow-border border-2 border-purple-500/30 p-8 rounded-xl bg-black/40">
+                        <div class="stats-number mb-4">500K+</div>
+                        <p class="text-xl text-gray-300">발행 쿠폰</p>
+                    </div>
+                    
+                    <div class="text-center glow-border-gold border-2 border-amber-500/30 p-8 rounded-xl bg-black/40">
+                        <div class="stats-number mb-4">₩15B+</div>
+                        <p class="text-xl text-gray-300">절약된 금액</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Global Expansion -->
+        <section id="expansion" class="fade-in">
+            <div class="max-w-6xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-text mb-12 text-center">글로벌 확장 전략</h2>
+                <div class="glow-border border-2 border-purple-500/30 p-12 rounded-2xl bg-black/40">
+                    <div class="text-center mb-8">
+                        <div class="text-7xl mb-6">🌍</div>
+                        <h3 class="text-3xl font-bold mb-4 text-purple-400">개발도상국 금융·유통 선도 모델</h3>
+                        <p class="text-xl text-gray-300">인프라가 부족한 국가에 모바일 경제 OS 보급</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-3 gap-6 mt-8">
+                        <div class="text-center p-6 border border-purple-500/30 rounded-xl">
+                            <div class="text-4xl mb-4">🇰🇷</div>
+                            <h4 class="text-xl font-bold mb-3">Phase 1: 한국</h4>
+                            <p class="text-gray-300">테스트베드 구축<br/>2025년 런칭</p>
+                        </div>
+                        
+                        <div class="text-center p-6 border border-cyan-500/30 rounded-xl">
+                            <div class="text-4xl mb-4">🌏</div>
+                            <h4 class="text-xl font-bold mb-3">Phase 2: 동남아</h4>
+                            <p class="text-gray-300">베트남·필리핀 진출<br/>2026년 확장</p>
+                        </div>
+                        
+                        <div class="text-center p-6 border border-amber-500/30 rounded-xl">
+                            <div class="text-4xl mb-4">🌎</div>
+                            <h4 class="text-xl font-bold mb-3">Phase 3: 글로벌</h4>
+                            <p class="text-gray-300">메타버스 경제 OS 완성<br/>2027년 세계화</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Future Vision -->
+        <section id="vision" class="fade-in">
+            <div class="max-w-6xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-gold mb-12 text-center">미래 비전</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="glow-border-gold border-2 border-amber-500/30 p-8 rounded-2xl bg-black/40">
+                        <div class="text-6xl mb-6">🥽</div>
+                        <h3 class="text-2xl font-bold mb-4 text-amber-400">AR 스마트글라스 시대</h3>
+                        <p class="text-lg text-gray-300 leading-relaxed mb-4">
+                            스마트폰 이후의 디바이스 혁명을 준비합니다. 
+                            현실 거리 위에 상점 정보와 AI 아바타가 떠오르는 미래.
+                        </p>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>• Apple Vision Pro 연동</li>
+                            <li>• Meta Quest 지원</li>
+                            <li>• AR Cloud 인프라</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glow-border border-2 border-purple-500/30 p-8 rounded-2xl bg-black/40">
+                        <div class="text-6xl mb-6">🌐</div>
+                        <h3 class="text-2xl font-bold mb-4 text-purple-400">메타버스 경제 OS</h3>
+                        <p class="text-lg text-gray-300 leading-relaxed mb-4">
+                            단순한 앱을 넘어, 가상과 현실을 잇는 
+                            메타버스 경제의 운영체제가 됩니다.
+                        </p>
+                        <ul class="space-y-2 text-gray-300">
+                            <li>• 디지털 트윈 상권</li>
+                            <li>• NFT 쿠폰 거래소</li>
+                            <li>• DAO 기반 커뮤니티</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Company Info -->
+        <section id="company" class="fade-in">
+            <div class="max-w-4xl">
+                <h2 class="text-4xl md:text-6xl font-bold neon-cyan mb-12 text-center">회사 정보</h2>
+                <div class="glow-border-cyan border-2 border-cyan-500/30 p-12 rounded-2xl bg-black/40">
+                    <div class="text-center mb-8">
+                        <h3 class="text-3xl font-bold mb-4 text-cyan-400">주식회사 발로레 (Valore)</h3>
+                        <p class="text-xl text-gray-300 mb-6">CouponTalkTalk 특허 기반 기업</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="border border-cyan-500/30 p-6 rounded-xl">
+                            <h4 class="text-lg font-bold mb-3 text-cyan-400">특허 정보</h4>
+                            <p class="text-gray-300">특허 제10-2092503호</p>
+                            <p class="text-gray-300 text-sm">위치기반 AR 쿠폰 표시 시스템</p>
+                        </div>
+                        
+                        <div class="border border-purple-500/30 p-6 rounded-xl">
+                            <h4 class="text-lg font-bold mb-3 text-purple-400">설립 정보</h4>
+                            <p class="text-gray-300">대한민국 서울 본사</p>
+                            <p class="text-gray-300 text-sm">사업자등록번호: [등록번호]</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center">
+                        <p class="text-gray-400 mb-4">특허권자: 노용호,오현실 · 이정훈 (대표)</p>
+                        <p class="text-gray-400">기술 파트너: Anty (AI) & Army (Vision Leader)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Download/Contact Section -->
+        <section id="download" class="fade-in">
+            <div class="max-w-4xl w-full text-center">
+                <h2 class="text-4xl md:text-6xl font-bold neon-text mb-8">지금 시작하세요</h2>
+                <p class="text-xl md:text-2xl text-gray-300 mb-12">
+                    AIRCTT와 함께 새로운 경제 생태계를 경험하세요
+                </p>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <div class="glow-border border-2 border-purple-500/30 p-8 rounded-2xl bg-black/40">
+                        <h3 class="text-2xl font-bold mb-6 text-purple-400">라이브 쿠폰 앱</h3>
+                        <div class="flex flex-col gap-4">
+                            <button class="glow-border border-2 border-purple-500 bg-purple-500/20 hover:bg-purple-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105">
+                                <span class="mr-3">📱</span>
+                                App Store 다운로드
+                            </button>
+                            <button class="glow-border-cyan border-2 border-cyan-500 bg-cyan-500/20 hover:bg-cyan-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105">
+                                <span class="mr-3">🤖</span>
+                                Google Play 다운로드
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glow-border-gold border-2 border-amber-500/30 p-8 rounded-2xl bg-black/40">
+                        <h3 class="text-2xl font-bold mb-6 text-amber-400">사업자용 시스템</h3>
+                        <div class="flex flex-col gap-4">
+                            <a href="test_register.html" class="glow-border-gold border-2 border-amber-500 bg-amber-500/20 hover:bg-amber-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105 text-center">
+                                <span class="mr-3">🏪</span>
+                                매장 입점 신청
+                            </a>
+                            <a href="store_homepage_full.html" class="glow-border border-2 border-purple-500 bg-purple-500/20 hover:bg-purple-500/40 px-8 py-4 rounded-full text-lg font-bold transition-all transform hover:scale-105 text-center">
+                                <span class="mr-3">🎨</span>
+                                매장 홈페이지 빌더
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 테스트 도구 섹션 -->
+                <div class="glow-border border-2 border-green-500/30 p-8 rounded-2xl bg-black/40 mb-12">
+                    <h3 class="text-2xl font-bold mb-6 text-green-400">🧪 개발 테스트 도구</h3>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <a href="test_register.html" class="border border-green-500/50 bg-green-500/10 hover:bg-green-500/20 px-6 py-4 rounded-xl text-center transition-all hover:scale-105">
+                            <div class="text-3xl mb-2">📝</div>
+                            <div class="font-bold text-green-400">가맹점 등록</div>
+                            <div class="text-xs text-gray-400 mt-1">Phase 2 API 테스트</div>
+                        </a>
+                        <a href="store_homepage_full.html" class="border border-cyan-500/50 bg-cyan-500/10 hover:bg-cyan-500/20 px-6 py-4 rounded-xl text-center transition-all hover:scale-105">
+                            <div class="text-3xl mb-2">🏪</div>
+                            <div class="font-bold text-cyan-400">매장 홈페이지</div>
+                            <div class="text-xs text-gray-400 mt-1">홈페이지 빌더 v2.0</div>
+                        </a>
+                        <a href="store_homepage.html" class="border border-purple-500/50 bg-purple-500/10 hover:bg-purple-500/20 px-6 py-4 rounded-xl text-center transition-all hover:scale-105">
+                            <div class="text-3xl mb-2">🎨</div>
+                            <div class="font-bold text-purple-400">간단 빌더</div>
+                            <div class="text-xs text-gray-400 mt-1">기본 테마 편집</div>
+                        </a>
+                        <a href="#" onclick="alert('Supabase Dashboard에서 확인하세요!')" class="border border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20 px-6 py-4 rounded-xl text-center transition-all hover:scale-105">
+                            <div class="text-3xl mb-2">🗄️</div>
+                            <div class="font-bold text-amber-400">DB 확인</div>
+                            <div class="text-xs text-gray-400 mt-1">Supabase 대시보드</div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="glow-border border-2 border-cyan-500/30 p-12 rounded-2xl bg-black/40">
+                    <h3 class="text-2xl font-bold mb-6 text-cyan-400">문의하기</h3>
+                    <div class="space-y-4">
+                        <a href="shoh32176@gmail.com" class="block text-xl text-purple-400 hover:text-purple-300 transition-colors">
+                            📧 shoh32176@gmail.com
+                        </a>
+                        <a href="https://airctt.com" class="block text-xl text-cyan-400 hover:text-cyan-300 transition-colors">
+                            🌐 www.airctt.com
+                        </a>
+                        <div class="flex justify-center gap-6 mt-8">
+                            <a href="#" class="text-4xl hover:scale-110 transition-transform" title="LinkedIn">💼</a>
+                            <a href="#" class="text-4xl hover:scale-110 transition-transform" title="Facebook">📘</a>
+                            <a href="#" class="text-4xl hover:scale-110 transition-transform" title="Instagram">📷</a>
+                            <a href="#" class="text-4xl hover:scale-110 transition-transform" title="YouTube">📺</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="mt-12 text-gray-500">
+                    © 2024 AIRCTT · Powered by (주)발로레 · All rights reserved<br/>
+                    숫자가 아닌 사람을 지키는 메타버스 경제 OS
+                </p>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // Three.js Scene Setup
+        let scene, camera, renderer, particles;
+        let mouseX = 0, mouseY = 0;
+        
+        function initThree() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+            
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Create particle system
+            const geometry = new THREE.BufferGeometry();
+            const particleCount = 5000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 30;
+                positions[i + 1] = (Math.random() - 0.5) * 30;
+                positions[i + 2] = (Math.random() - 0.5) * 30;
+                
+                const colorChoice = Math.random();
+                if (colorChoice > 0.66) {
+                    // Purple
+                    colors[i] = 0.66;
+                    colors[i + 1] = 0.33;
+                    colors[i + 2] = 0.97;
+                } else if (colorChoice > 0.33) {
+                    // Cyan
+                    colors[i] = 0.13;
+                    colors[i + 1] = 0.83;
+                    colors[i + 2] = 0.91;
+                } else {
+                    // Gold
+                    colors[i] = 0.98;
+                    colors[i + 1] = 0.75;
+                    colors[i + 2] = 0.14;
+                }
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.07,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            particles.rotation.x += 0.0002;
+            particles.rotation.y += 0.0004;
+            
+            particles.rotation.x += mouseY * 0.00002;
+            particles.rotation.y += mouseX * 0.00004;
+            
+            renderer.render(scene, camera);
+        }
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX - window.innerWidth / 2;
+            mouseY = e.clientY - window.innerHeight / 2;
+        });
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+        
+        window.addEventListener('load', () => {
+            const heroName = document.getElementById('hero-name');
+            const text = heroName.textContent;
+            heroName.innerHTML = '';
+            
+            text.split('').forEach((char, i) => {
+                const span = document.createElement('span');
+                span.className = 'char';
+                span.textContent = char === ' ' ? '\u00A0' : char;
+                heroName.appendChild(span);
+                
+                gsap.to(span, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.5,
+                    delay: i * 0.1,
+                    ease: 'back.out(1.7)'
+                });
+            });
+            
+            gsap.from('#hero-subtitle', {
+                opacity: 0,
+                y: 50,
+                duration: 1,
+                delay: 1,
+                ease: 'power3.out'
+            });
+        });
+        
+        const fadeInElements = document.querySelectorAll('.fade-in');
+        fadeInElements.forEach(element => {
+            gsap.to(element, {
+                opacity: 1,
+                y: 0,
+                duration: 1,
+                scrollTrigger: {
+                    trigger: element,
+                    start: 'top 80%',
+                    end: 'bottom 20%',
+                    toggleActions: 'play none none reverse'
+                }
+            });
+        });
+        
+        gsap.from('.feature-card', {
+            opacity: 0,
+            y: 100,
+            stagger: 0.15,
+            duration: 0.8,
+            scrollTrigger: {
+                trigger: '#tech',
+                start: 'top 70%',
+            }
+        });
+        
+        initThree();
+    </script>
+</body>
+</html>

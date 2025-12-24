@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIRCTT - AI Reality CouponTalkTalk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+    
+    h1, h2, h3 { font-family: 'Orbitron', monospace; }
+    
+    #canvas-3d {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(168, 85, 247, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168, 85, 247, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    
+    .glow-border {
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      box-shadow: 
+        0 0 20px rgba(168, 85, 247, 0.2),
+        inset 0 0 20px rgba(168, 85, 247, 0.1);
+    }
+    
+    .neon-text {
+      text-shadow: 
+        0 0 10px rgba(168, 85, 247, 0.8),
+        0 0 20px rgba(168, 85, 247, 0.6),
+        0 0 30px rgba(168, 85, 247, 0.4);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn-primary:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .card {
+      background: rgba(26, 10, 46, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(168, 85, 247, 0.3);
+    }
+    
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    #globe-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      margin: 4rem 0;
+    }
+    
+    #globe-canvas {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    
+    #globe-canvas:active {
+      cursor: grabbing;
+    }
+    
+    .icon-replacement {
+      display: inline-block;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+  </style>
+</head>
+<body class="grid-bg">
+  <!-- 3D 배경 캔버스 -->
+  <canvas id="canvas-3d"></canvas>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="content">
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center px-4">
+      <div class="text-center max-w-4xl mx-auto">
+        <div class="mb-8">
+          <span class="text-6xl filter drop-shadow-lg" style="filter: drop-shadow(0 0 20px #fbbf24);">🐰</span>
+        </div>
+        <h1 class="text-6xl md:text-8xl font-black mb-6">
+          <span class="neon-text">AIRCTT</span>
+        </h1>
+        <p class="text-2xl md:text-3xl mb-4 gradient-text font-bold">
+          AI Reality CouponTalkTalk
+        </p>
+        <p class="text-xl md:text-2xl mb-8 text-gray-300">
+          위치기반 AR 쿠폰 플랫폼
+        </p>
+        <p class="text-lg md:text-xl mb-12 text-purple-300">
+          숫자가 아닌 사람을 지키는 메타버스 경제 OS
+        </p>
+        <div class="flex gap-4 justify-center flex-wrap">
+          <a href="#" class="btn-primary inline-block">
+            소비자 앱 다운로드
+          </a>
+          <a href="#" class="btn-primary inline-block">
+            사업자 시스템 시작
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 문제점 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          현재의 문제
+        </h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="card glow-border">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">양극화 구조</h3>
+            <p class="text-gray-300">대형 플랫폼의 독점, 과도한 수수료로 인한 중소상공인의 어려움</p>
+          </div>
+          <div class="card glow-border">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">데이터 주권 상실</h3>
+            <p class="text-gray-300">플랫폼 종속으로 독자적인 고객 데이터 확보 불가능</p>
+          </div>
+          <div class="card glow-border">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">높은 진입장벽</h3>
+            <p class="text-gray-300">기술 접근성 차이가 경제적 빈곤으로 이어지는 구조</p>
+          </div>
+          <div class="card glow-border">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">수익성 악화</h3>
+            <p class="text-gray-300">기존 플랫폼 대비 낮은 수익 구조</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 솔루션 1: 반경 기반 디지털 입지 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          솔루션 1: 반경 기반 디지털 입지
+        </h2>
+        <div class="card glow-border text-center">
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-purple-300">매장 반경 500m = 디지털 영토</h3>
+          <p class="text-xl text-gray-300 mb-8">
+            플랫폼 종속에서 벗어나 독자적인 고객 데이터 확보<br>
+            위치 기반 서비스(LBS)로 내 가게만의 디지털 입지 구축
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 솔루션 2: AR 직거래 장터 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          솔루션 2: CouponTalkTalk AR 직거래 장터
+        </h2>
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="card glow-border">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">1분 만에 쿠폰 발행</h3>
+            <p class="text-gray-300">AR로 현실 공간에 쿠폰 표시, 즉시 발급 가능</p>
+          </div>
+          <div class="card glow-border">
+            <div class="icon-replacement"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">5단계 게임화</h3>
+            <p class="text-gray-300">보석 떨어짐 → 조심 → 위험 → 전설 → 축하</p>
+          </div>
+        </div>
+        <div class="mt-8 card glow-border text-center">
+          <h3 class="text-3xl font-bold mb-4 gradient-text">증강현실(AR) 경험</h3>
+          <p class="text-xl text-gray-300">
+            스마트폰 카메라로 현실 공간에 떠 있는 쿠폰 확인<br>
+            Apple Vision Pro, Meta Quest 등 스마트글라스 준비 완료
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 솔루션 3: AI CFO Golden Rabbit -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          솔루션 3: AI CFO Golden Rabbit
+        </h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-4 text-purple-400">실시간 매출 분석</h3>
+            <p class="text-gray-300">AI가 매출 패턴 분석하고 최적화 제안</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-4 text-cyan-400">수요·공급 균형</h3>
+            <p class="text-gray-300">적정 가격과 수량을 AI가 자동 계산</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-4 text-purple-400">세무 브리핑</h3>
+            <p class="text-gray-300">매입·매출 자동 분류 및 세무 리포트</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 핵심기술 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          핵심기술
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-purple-400">특허 기술</h3>
+            <p class="text-sm text-gray-400">특허2092503호</p>
+            <p class="text-gray-300 mt-2">위치기반 증강현실 디지털 재화 광고 시스템</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-cyan-400">AI 엔진</h3>
+            <p class="text-gray-300">수요·공급 균형 알고리즘<br>AI CFO Golden Rabbit</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-purple-400">LBS</h3>
+            <p class="text-gray-300">반경·시간·조건 기반<br>위치 서비스</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-xl font-bold mb-2 text-cyan-400">AR/VR</h3>
+            <p class="text-gray-300">스마트글라스 준비<br>메타버스 경제 OS</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 사회적 가치 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto text-center">
+        <h2 class="text-4xl md:text-5xl font-black mb-16 gradient-text">
+          사회적 가치: 상생·평화·사랑
+        </h2>
+        <div class="card glow-border max-w-3xl mx-auto">
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-purple-300">구름나라 (Cloud Nation)</h3>
+          <p class="text-xl text-gray-300 mb-4">
+            기업 기부금을 가장 힘든 사람부터 배분하는 시스템
+          </p>
+          <p class="text-lg text-gray-400">
+            사회적 사각지대 보호 · 중소상공인 회생 시나리오<br>
+            숫자가 아닌 사람을 먼저 생각하는 경제 플랫폼
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 비즈니스 모델 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          비즈니스 모델
+        </h2>
+        <div class="card glow-border">
+          <h3 class="text-3xl font-bold mb-8 text-center text-purple-300">
+            수익 포트폴리오
+          </h3>
+          <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <div>
+              <h4 class="text-xl font-bold mb-4 text-cyan-400">다양한 수익원</h4>
+              <ul class="text-gray-300 space-y-2">
+                <li>• 광고 수익</li>
+                <li>• 쿠폰 거래 수수료</li>
+                <li>• AI CFO 구독</li>
+                <li>• AR 콘텐츠 제작</li>
+                <li>• 데이터 분석 서비스</li>
+                <li>• 플랫폼 이용료</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-xl font-bold mb-4 text-purple-400">5년 수익 시뮬레이션</h4>
+              <div class="bg-black/30 p-4 rounded-lg">
+                <p class="text-sm text-gray-400 mb-2">보수형 예측:</p>
+                <p class="text-cyan-300">1년차: 33억원 → 5년차: 231억원</p>
+                <p class="text-sm text-gray-400 mt-4 mb-2">확장형 예측:</p>
+                <p class="text-purple-300">1년차: 324억원 → 5년차: 2,316억원</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3D 지구본 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-8 gradient-text">
+          글로벌 확장 비전
+        </h2>
+        <p class="text-center text-xl text-gray-300 mb-8">
+          전 세계를 연결하는 메타버스 경제 플랫폼
+        </p>
+        <div id="globe-container">
+          <canvas id="globe-canvas"></canvas>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8 mt-12">
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">Phase 1: 한국</h3>
+            <p class="text-gray-300">2025년 런칭<br>국내 시장 검증</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-2xl font-bold mb-4 text-cyan-400">Phase 2: 동남아</h3>
+            <p class="text-gray-300">2026년 확장<br>아시아 시장 진출</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="icon-replacement mx-auto"></div>
+            <h3 class="text-2xl font-bold mb-4 text-purple-400">Phase 3: 글로벌</h3>
+            <p class="text-gray-300">2027년 이후<br>메타버스 경제 OS</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 통계 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          현재 성과
+        </h2>
+        <div class="grid md:grid-cols-4 gap-8">
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">50K+</div>
+            <p class="text-gray-400">활성 사용자</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">10K+</div>
+            <p class="text-gray-400">등록 매장</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">500K+</div>
+            <p class="text-gray-400">발행 쿠폰</p>
+          </div>
+          <div class="card glow-border text-center">
+            <div class="text-5xl font-black gradient-text mb-2">₩15B+</div>
+            <p class="text-gray-400">절감 금액</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 미래 비전 -->
+    <section class="py-20 px-4">
+      <div class="max-w-6xl mx-auto text-center">
+        <h2 class="text-4xl md:text-5xl font-black mb-16 gradient-text">
+          미래 비전
+        </h2>
+        <div class="card glow-border max-w-4xl mx-auto">
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-purple-300">AR 스마트글라스 시대</h3>
+          <p class="text-xl text-gray-300 mb-8">
+            Apple Vision Pro, Meta Quest 등 스마트글라스로<br>
+            일상 속에서 AR 쿠폰과 상호작용하는 시대
+          </p>
+          <div class="icon-replacement mx-auto"></div>
+          <h3 class="text-3xl font-bold mb-6 text-cyan-300">메타버스 경제 OS</h3>
+          <p class="text-xl text-gray-300">
+            현실과 가상을 넘나드는 경제 시스템<br>
+            모든 거래가 투명하고 공정한 새로운 경제 플랫폼
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 회사 정보 -->
+    <section class="py-20 px-4">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-16 gradient-text">
+          회사 정보
+        </h2>
+        <div class="card glow-border">
+          <div class="text-center mb-8">
+            <h3 class="text-3xl font-bold mb-2 text-purple-300">(주)발로레</h3>
+            <p class="text-xl text-gray-400">Valore Inc.</p>
+          </div>
+          <div class="space-y-4 text-gray-300">
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">특허번호</span>
+              <span>특허2092503호</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">특허명</span>
+              <span class="text-right">위치기반 증강현실 디지털 재화<br>광고 시스템 및 방법</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">특허권자</span>
+              <span>오현실 · 이정훈</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">비전 리더</span>
+              <span>Army</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">AI 빌더</span>
+              <span>Anty</span>
+            </div>
+            <div class="flex justify-between border-b border-purple-500/30 pb-2">
+              <span class="font-bold text-purple-400">문의 이메일</span>
+              <span>zeus1404@gmail.com</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA 섹션 -->
+    <section class="py-20 px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-4xl md:text-6xl font-black mb-8 neon-text">
+          지금 시작하세요
+        </h2>
+        <p class="text-xl md:text-2xl mb-12 text-gray-300">
+          미래의 경제 플랫폼, AIRCTT와 함께하세요
+        </p>
+        <div class="flex gap-4 justify-center flex-wrap">
+          <a href="#" class="btn-primary inline-block">
+            소비자 앱 다운로드
+          </a>
+          <a href="#" class="btn-primary inline-block">
+            사업자 시스템 시작하기
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-purple-500/30">
+      <div class="max-w-6xl mx-auto text-center text-gray-400">
+        <p class="mb-4">&copy; 2025 (주)발로레 · AIRCTT. All rights reserved.</p>
+        <p class="text-sm">숫자가 아닌 사람을 지키는 메타버스 경제 OS</p>
+        <p class="text-sm mt-2">문의: zeus1404@gmail.com</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ===== 3D 지구본 (Cyberpunk Wireframe Globe with Bloom) =====
+    
+    // EffectComposer, RenderPass, UnrealBloomPass 구현 (간소화된 버전)
+    class EffectComposer {
+      constructor(renderer) {
+        this.renderer = renderer;
+        this.passes = [];
+        this.renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+      }
+      
+      addPass(pass) {
+        this.passes.push(pass);
+      }
+      
+      render() {
+        this.passes.forEach(pass => {
+          if (pass.enabled) pass.render(this.renderer);
+        });
+      }
+      
+      setSize(width, height) {
+        this.renderTarget.setSize(width, height);
+      }
+    }
+    
+    class RenderPass {
+      constructor(scene, camera) {
+        this.scene = scene;
+        this.camera = camera;
+        this.enabled = true;
+      }
+      
+      render(renderer) {
+        renderer.render(this.scene, this.camera);
+      }
+    }
+    
+    // UnrealBloomPass 간소화 (실제로는 shader 기반이지만 여기서는 시각적 효과만)
+    class UnrealBloomPass {
+      constructor(resolution, strength, radius, threshold) {
+        this.enabled = true;
+        this.strength = strength;
+        this.radius = radius;
+        this.threshold = threshold;
+      }
+      
+      render(renderer) {
+        // 간소화: 실제 블룸 효과는 shader로 구현되지만
+        // 여기서는 Three.js의 기본 렌더링에 의존
+      }
+    }
+    
+    // 지구본 초기화
+    const globeCanvas = document.getElementById('globe-canvas');
+    const globeScene = new THREE.Scene();
+    const globeCamera = new THREE.PerspectiveCamera(60, globeCanvas.clientWidth / globeCanvas.clientHeight, 0.1, 1000);
+    const globeRenderer = new THREE.WebGLRenderer({ 
+      canvas: globeCanvas, 
+      alpha: true,
+      antialias: true 
+    });
+    
+    globeRenderer.setSize(globeCanvas.clientWidth, globeCanvas.clientHeight);
+    globeRenderer.setPixelRatio(window.devicePixelRatio);
+    globeCamera.position.z = 300;
+    
+    // 우주 배경 (별)
+    const starsGeometry = new THREE.BufferGeometry();
+    const starVertices = [];
+    for (let i = 0; i < 10000; i++) {
+      const x = (Math.random() - 0.5) * 2000;
+      const y = (Math.random() - 0.5) * 2000;
+      const z = (Math.random() - 0.5) * 2000;
+      starVertices.push(x, y, z);
+    }
+    starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    const starsMaterial = new THREE.PointsMaterial({ 
+      color: 0xffffff, 
+      size: 1,
+      transparent: true,
+      opacity: 0.8
+    });
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    globeScene.add(stars);
+    
+    // 와이어프레임 지구본
+    const globeGeometry = new THREE.SphereGeometry(100, 64, 64);
+    const wireframeGeometry = new THREE.WireframeGeometry(globeGeometry);
+    const globeMaterial = new THREE.LineBasicMaterial({ 
+      color: 0x22d3ee,
+      transparent: true,
+      opacity: 0.3
+    });
+    const globe = new THREE.LineSegments(wireframeGeometry, globeMaterial);
+    globeScene.add(globe);
+    
+    // 네온 글로우 지구본 (겹쳐서 블룸 효과)
+    const glowMaterial = new THREE.LineBasicMaterial({ 
+      color: 0x22d3ee,
+      transparent: true,
+      opacity: 0.6,
+      linewidth: 2
+    });
+    const glowGlobe = new THREE.LineSegments(wireframeGeometry, glowMaterial);
+    globeScene.add(glowGlobe);
+    
+    // Beacon (빛 기둥) 생성
+    const beacons = [];
+    const beaconCount = 20;
+    
+    for (let i = 0; i < beaconCount; i++) {
+      // 랜덤 위치 (구 표면)
+      const phi = Math.random() * Math.PI * 2;
+      const theta = Math.random() * Math.PI;
+      
+      const x = 100 * Math.sin(theta) * Math.cos(phi);
+      const y = 100 * Math.sin(theta) * Math.sin(phi);
+      const z = 100 * Math.cos(theta);
+      
+      // Beacon 기둥
+      const beaconGeometry = new THREE.CylinderGeometry(0.5, 0.5, 30, 8);
+      const beaconMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x22d3ee,
+        transparent: true,
+        opacity: 0.8
+      });
+      const beacon = new THREE.Mesh(beaconGeometry, beaconMaterial);
+      
+      beacon.position.set(x, y, z);
+      beacon.lookAt(0, 0, 0);
+      beacon.rotateX(Math.PI / 2);
+      
+      // 파동 링 (Pulse)
+      const ringGeometry = new THREE.RingGeometry(2, 3, 32);
+      const ringMaterial = new THREE.MeshBasicMaterial({ 
+        color: 0x22d3ee,
+        transparent: true,
+        opacity: 0.6,
+        side: THREE.DoubleSide
+      });
+      const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+      ring.position.set(x, y, z);
+      ring.lookAt(0, 0, 0);
+      
+      const beaconGroup = new THREE.Group();
+      beaconGroup.add(beacon);
+      beaconGroup.add(ring);
+      beaconGroup.userData = { 
+        phase: Math.random() * Math.PI * 2,
+        ring: ring,
+        beacon: beacon,
+        baseOpacity: 0.8
+      };
+      
+      globeScene.add(beaconGroup);
+      beacons.push(beaconGroup);
+    }
+    
+    // 조명
+    const ambientLight = new THREE.AmbientLight(0x404040, 2);
+    globeScene.add(ambientLight);
+    
+    const pointLight = new THREE.PointLight(0x22d3ee, 2, 500);
+    pointLight.position.set(200, 200, 200);
+    globeScene.add(pointLight);
+    
+    // 마우스 컨트롤
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let rotation = { x: 0, y: 0 };
+    let autoRotate = true;
+    
+    globeCanvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      autoRotate = false;
+      previousMousePosition = { x: e.offsetX, y: e.offsetY };
+    });
+    
+    globeCanvas.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaX = e.offsetX - previousMousePosition.x;
+        const deltaY = e.offsetY - previousMousePosition.y;
+        
+        rotation.y += deltaX * 0.01;
+        rotation.x += deltaY * 0.01;
+        
+        previousMousePosition = { x: e.offsetX, y: e.offsetY };
+      }
+    });
+    
+    globeCanvas.addEventListener('mouseup', () => {
+      isDragging = false;
+      setTimeout(() => { autoRotate = true; }, 3000);
+    });
+    
+    globeCanvas.addEventListener('mouseleave', () => {
+      isDragging = false;
+    });
+    
+    // 줌 (마우스 휠)
+    globeCanvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      globeCamera.position.z += e.deltaY * 0.1;
+      globeCamera.position.z = Math.max(150, Math.min(500, globeCamera.position.z));
+    });
+    
+    // 애니메이션 루프
+    function animateGlobe() {
+      requestAnimationFrame(animateGlobe);
+      
+      // 자동 회전
+      if (autoRotate) {
+        rotation.y += 0.002;
+      }
+      
+      globe.rotation.x = rotation.x;
+      globe.rotation.y = rotation.y;
+      glowGlobe.rotation.x = rotation.x;
+      glowGlobe.rotation.y = rotation.y;
+      
+      // Beacon 애니메이션
+      beacons.forEach(beaconGroup => {
+        beaconGroup.userData.phase += 0.03;
+        const pulse = Math.sin(beaconGroup.userData.phase);
+        
+        // 링 크기 변화
+        const scale = 1 + pulse * 0.5;
+        beaconGroup.userData.ring.scale.set(scale, scale, 1);
+        
+        // 투명도 변화
+        beaconGroup.userData.ring.material.opacity = 0.6 + pulse * 0.3;
+        beaconGroup.userData.beacon.material.opacity = beaconGroup.userData.baseOpacity + pulse * 0.2;
+      });
+      
+      // 별 회전
+      stars.rotation.y += 0.0001;
+      
+      globeRenderer.render(globeScene, globeCamera);
+    }
+    
+    animateGlobe();
+    
+    // 리사이즈 핸들러
+    window.addEventListener('resize', () => {
+      const width = globeCanvas.clientWidth;
+      const height = globeCanvas.clientHeight;
+      globeCamera.aspect = width / height;
+      globeCamera.updateProjectionMatrix();
+      globeRenderer.setSize(width, height);
+    });
+    
+    // ===== 배경 파티클 시스템 =====
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.getElementById('canvas-3d'),
+      alpha: true
+    });
+    
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    camera.position.z = 50;
+    
+    const particleCount = 5000;
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    
+    const purpleColor = new THREE.Color(0xa855f7);
+    const cyanColor = new THREE.Color(0x22d3ee);
+    const goldColor = new THREE.Color(0xfbbf24);
+    
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+      
+      const colorChoice = Math.random();
+      const color = colorChoice < 0.4 ? purpleColor : (colorChoice < 0.8 ? cyanColor : goldColor);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+    
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const material = new THREE.PointsMaterial({
+      size: 0.5,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending
+    });
+    
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+    
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    document.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+    
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      
+      particles.rotation.x += 0.0002;
+      particles.rotation.y += 0.0003;
+      particles.rotation.x += mouseY * 0.0005;
+      particles.rotation.y += mouseX * 0.0005;
+      
+      renderer.render(scene, camera);
+    }
+    
+    animate3D();
+    
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // GSAP 스크롤 애니메이션
+    gsap.registerPlugin(ScrollTrigger);
+    
+    gsap.utils.toArray('.card').forEach(card => {
+      gsap.from(card, {
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 80%',
+          end: 'bottom 20%',
+          toggleActions: 'play none none reverse'
+        },
+        opacity: 0,
+        y: 50,
+        duration: 0.8,
+        ease: 'power2.out'
+      });
+    });
+  </script>
+</body>
+</html>

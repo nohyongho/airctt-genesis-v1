@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIRCTT - AI Reality CouponTalkTalk</title>
+  
+  <!-- CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  
+  <!-- 소셜 로그인 SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js" integrity="sha384-l+xbElFSnPZ2rOaPrU//2FF5B4LB8FiX5q4fXYTlfcG4PGpMkE1vcL7kNXI6Cci0" crossorigin="anonymous"></script>
+  <script src="https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js" charset="utf-8"></script>
+  
+  <!-- 폰트 -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+    
+    h1, h2, h3 { font-family: 'Orbitron', monospace; }
+    
+    #canvas-3d {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    
+    .content { position: relative; z-index: 1; }
+    
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(168, 85, 247, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168, 85, 247, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    
+    .glow-border {
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.2), inset 0 0 20px rgba(168, 85, 247, 0.1);
+    }
+    
+    .neon-text {
+      text-shadow: 0 0 10px rgba(168, 85, 247, 0.8), 0 0 20px rgba(168, 85, 247, 0.6), 0 0 30px rgba(168, 85, 247, 0.4);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      transition: transform 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      border: none;
+      font-size: 1rem;
+    }
+    
+    .btn-primary:hover { transform: translateY(-2px); }
+    
+    /* 소셜 로그인 버튼 */
+    .social-btn {
+      width: 100%;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.3s;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .social-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .btn-google {
+      background: #ffffff;
+      color: #333333;
+      border: 1px solid #dddddd;
+    }
+    
+    .btn-kakao {
+      background: #FEE500;
+      color: #000000;
+    }
+    
+    .btn-naver {
+      background: #03C75A;
+      color: #ffffff;
+    }
+    
+    .btn-email {
+      background: #6366f1;
+      color: #ffffff;
+    }
+    
+    .card {
+      background: rgba(26, 10, 46, 0.3);
+      backdrop-filter: blur(10px);
+      border-radius: 1rem;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(168, 85, 247, 0.3);
+    }
+    
+    .page { display: none; }
+    .page.active { display: block; }
+    
+    #game-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: none;
+    }
+    
+    #game-container.active { display: block; }
+    
+    #game-canvas {
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    
+    .game-hud {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2rem;
+      z-index: 1001;
+    }
+    
+    .hud-item {
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(34, 211, 238, 0.5);
+      border-radius: 15px;
+      padding: 1rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 120px;
+    }
+    
+    .hud-label {
+      font-size: 0.9rem;
+      color: #22d3ee;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    
+    .hud-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(34, 211, 238, 0.8);
+    }
+    
+    .coupon-card {
+      background: rgba(26, 10, 46, 0.5);
+      border-left: 4px solid;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .coupon-card:hover {
+      transform: translateX(10px);
+      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+    }
+    
+    .coupon-card.common { border-color: #888888; }
+    .coupon-card.rare { border-color: #4a9eff; }
+    .coupon-card.epic { border-color: #a855f7; }
+    .coupon-card.legendary { border-color: #fbbf24; }
+    .coupon-card.mythic { border-color: #ff0000; }
+    
+    .rarity-badge {
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+    
+    .rarity-badge.common { background: #888888; }
+    .rarity-badge.rare { background: #4a9eff; }
+    .rarity-badge.epic { background: #a855f7; }
+    .rarity-badge.legendary { background: #fbbf24; color: #000; }
+    .rarity-badge.mythic { background: #ff0000; }
+    
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2rem;
+    }
+    
+    nav .nav-left { display: flex; }
+    
+    nav a {
+      color: white;
+      text-decoration: none;
+      padding: 1rem 1.5rem;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+    
+    nav a:hover {
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.5rem 1rem;
+      background: rgba(168, 85, 247, 0.2);
+      border-radius: 2rem;
+    }
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a855f7, #22d3ee);
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.active { display: flex; }
+    
+    .modal-content {
+      background: rgba(26, 10, 46, 0.95);
+      border: 2px solid rgba(168, 85, 247, 0.5);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1.5rem 0;
+      color: #888;
+    }
+    
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #444;
+    }
+    
+    .divider span {
+      padding: 0 1rem;
+    }
+    
+    @keyframes rabbitJump {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.1); }
+    }
+    
+    .rabbit-animation {
+      animation: rabbitJump 0.6s ease-in-out;
+    }
+    
+    @media (max-width: 768px) {
+      nav { flex-direction: column; padding: 0.5rem; }
+      .game-hud { gap: 1rem; }
+      .hud-item { padding: 0.8rem 1rem; min-width: 80px; }
+      .hud-value { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body class="grid-bg">
+  <!-- 네비게이션 -->
+  <nav>
+    <div class="nav-left">
+      <a href="#" onclick="showPage('home')">🏠 홈</a>
+      <a href="#" onclick="showPage('wallet')">💰 쿠폰 지갑</a>
+      <a href="#" onclick="showPage('business')">💼 사업자</a>
+      <a href="#" onclick="startGame()">🎮 게임</a>
+    </div>
+    <div id="nav-user">
+      <a href="#" onclick="showPage('login')">👤 로그인</a>
+    </div>
+  </nav>
+
+  <!-- 3D 배경 -->
+  <canvas id="canvas-3d"></canvas>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="content" style="padding-top: 60px;">
+    
+    <!-- 홈 페이지 -->
+    <div id="home-page" class="page active">
+      <section class="min-h-screen flex items-center justify-center px-4">
+        <div class="text-center max-w-4xl mx-auto">
+          <div class="mb-8">
+            <span id="rabbit-emoji" class="text-8xl filter drop-shadow-lg">🐰</span>
+          </div>
+          <h1 class="text-6xl md:text-8xl font-black mb-6 neon-text">AIRCTT</h1>
+          <p class="text-2xl md:text-3xl mb-4 gradient-text font-bold">AI Reality CouponTalkTalk</p>
+          <p class="text-xl mb-8 text-gray-300">숫자가 아닌 사람을 지키는 메타버스 경제 OS</p>
+          <div class="flex gap-4 justify-center flex-wrap">
+            <button onclick="startGame()" class="btn-primary">🎮 3D 쿠폰 게임</button>
+            <button onclick="showPage('wallet')" class="btn-primary">💰 쿠폰 지갑</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 쿠폰 지갑 페이지 -->
+    <div id="wallet-page" class="page">
+      <div class="max-w-4xl mx-auto px-4 py-20">
+        <h2 class="text-4xl font-black mb-8 gradient-text">💰 내 쿠폰 지갑</h2>
+        
+        <div class="flex gap-4 mb-8">
+          <button onclick="filterCoupons('all')" class="btn-primary">전체</button>
+          <button onclick="filterCoupons('available')" class="btn-primary">사용가능</button>
+          <button onclick="filterCoupons('used')" class="btn-primary">사용완료</button>
+        </div>
+        
+        <div id="coupon-list"></div>
+      </div>
+    </div>
+
+    <!-- 사업자 페이지 -->
+    <div id="business-page" class="page">
+      <div class="max-w-6xl mx-auto px-4 py-20">
+        <h2 class="text-4xl font-black mb-8 gradient-text">💼 사업자 대시보드</h2>
+        
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+          <div class="card glow-border text-center">
+            <div class="text-5xl mb-4">📊</div>
+            <h3 class="text-xl font-bold mb-2">총 발급 쿠폰</h3>
+            <p class="text-3xl font-black gradient-text" id="total-issued">0</p>
+          </div>
+          
+          <div class="card glow-border text-center">
+            <div class="text-5xl mb-4">✅</div>
+            <h3 class="text-xl font-bold mb-2">사용된 쿠폰</h3>
+            <p class="text-3xl font-black gradient-text" id="total-used">0</p>
+          </div>
+          
+          <div class="card glow-border text-center">
+            <div class="text-5xl mb-4">💵</div>
+            <h3 class="text-xl font-bold mb-2">총 매출</h3>
+            <p class="text-3xl font-black gradient-text" id="total-revenue">₩0</p>
+          </div>
+        </div>
+        
+        <button onclick="openCouponIssueModal()" class="btn-primary mb-8">➕ 새 쿠폰 발급</button>
+        
+        <div class="card glow-border">
+          <h3 class="text-2xl font-bold mb-4">발급한 쿠폰 목록</h3>
+          <div id="business-coupon-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 로그인 페이지 -->
+    <div id="login-page" class="page">
+      <div class="max-w-md mx-auto px-4 py-20">
+        <div class="card glow-border">
+          <h2 class="text-3xl font-black mb-8 text-center gradient-text">로그인</h2>
+          
+          <!-- 소셜 로그인 -->
+          <div class="mb-6">
+            <!-- 구글 로그인 -->
+            <button onclick="loginWithGoogle()" class="social-btn btn-google">
+              <svg width="20" height="20" viewBox="0 0 20 20">
+                <path fill="#4285F4" d="M19.6 10.23c0-.82-.1-1.42-.25-2.05H10v3.72h5.5c-.15.96-.74 2.31-2.04 3.22v2.45h3.16c1.89-1.73 2.98-4.3 2.98-7.34z"/>
+                <path fill="#34A853" d="M13.46 15.13c-.83.59-1.96 1-3.46 1-2.64 0-4.88-1.74-5.68-4.15H1.07v2.52C2.72 17.75 6.09 20 10 20c2.7 0 4.96-.89 6.62-2.42l-3.16-2.45z"/>
+                <path fill="#FBBC05" d="M3.99 10c0-.69.12-1.35.32-1.97V5.51H1.07A9.973 9.973 0 000 10c0 1.61.39 3.14 1.07 4.49l3.24-2.52c-.2-.62-.32-1.28-.32-1.97z"/>
+                <path fill="#EA4335" d="M10 3.88c1.88 0 3.13.81 3.85 1.48l2.84-2.76C14.96.99 12.7 0 10 0 6.09 0 2.72 2.25 1.07 5.51l3.24 2.52C5.12 5.62 7.36 3.88 10 3.88z"/>
+              </svg>
+              구글로 시작하기
+            </button>
+            
+            <!-- 카카오 로그인 -->
+            <button onclick="loginWithKakao()" class="social-btn btn-kakao">
+              <svg width="20" height="20" viewBox="0 0 20 20">
+                <path fill="#000000" d="M10 0C4.477 0 0 3.462 0 7.727c0 2.805 1.861 5.26 4.658 6.608-.186.674-.678 2.419-.777 2.806-.122.477.175.47.37.342.15-.099 2.428-1.622 3.368-2.273.437.06.885.09 1.34.09 5.522 0 10-3.462 10-7.727S15.522 0 10 0z"/>
+              </svg>
+              카카오로 시작하기
+            </button>
+            
+            <!-- 네이버 로그인 -->
+            <button onclick="loginWithNaver()" class="social-btn btn-naver">
+              <svg width="20" height="20" viewBox="0 0 20 20">
+                <path fill="#FFFFFF" d="M13.6 0H6.4L6.4 11.4L13.6 20V8.6L13.6 0Z"/>
+              </svg>
+              네이버로 시작하기
+            </button>
+          </div>
+          
+          <div class="divider">
+            <span>또는</span>
+          </div>
+          
+          <!-- 이메일 로그인 -->
+          <form id="email-login-form" style="display: none;" onsubmit="handleEmailLogin(event)">
+            <div class="mb-4">
+              <label class="block mb-2">이메일</label>
+              <input type="email" id="login-email" class="w-full p-3 rounded bg-gray-900 border border-purple-500" required>
+            </div>
+            <div class="mb-6">
+              <label class="block mb-2">비밀번호</label>
+              <input type="password" id="login-password" class="w-full p-3 rounded bg-gray-900 border border-purple-500" required>
+            </div>
+            <button type="submit" class="btn-primary w-full mb-4">로그인</button>
+            <button type="button" onclick="toggleEmailForm()" class="w-full text-center text-gray-400">소셜 로그인으로 돌아가기</button>
+          </form>
+          
+          <button onclick="toggleEmailForm()" id="email-login-btn" class="social-btn btn-email">
+            📧 이메일로 로그인
+          </button>
+          
+          <p class="text-center mt-4">
+            <a href="#" onclick="showPage('register')" class="text-purple-400">회원가입</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 회원가입 페이지 -->
+    <div id="register-page" class="page">
+      <div class="max-w-md mx-auto px-4 py-20">
+        <div class="card glow-border">
+          <h2 class="text-3xl font-black mb-8 text-center gradient-text">회원가입</h2>
+          <form onsubmit="handleRegister(event)">
+            <div class="mb-4">
+              <label class="block mb-2">이름</label>
+              <input type="text" id="register-name" class="w-full p-3 rounded bg-gray-900 border border-purple-500" required>
+            </div>
+            <div class="mb-4">
+              <label class="block mb-2">이메일</label>
+              <input type="email" id="register-email" class="w-full p-3 rounded bg-gray-900 border border-purple-500" required>
+            </div>
+            <div class="mb-4">
+              <label class="block mb-2">비밀번호</label>
+              <input type="password" id="register-password" class="w-full p-3 rounded bg-gray-900 border border-purple-500" required>
+            </div>
+            <div class="mb-6">
+              <label class="block mb-2">전화번호</label>
+              <input type="tel" id="register-phone" class="w-full p-3 rounded bg-gray-900 border border-purple-500" required>
+            </div>
+            <button type="submit" class="btn-primary w-full">회원가입</button>
+          </form>
+          <p class="text-center mt-4">
+            <a href="#" onclick="showPage('login')" class="text-purple-400">로그인</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 게임 컨테이너 -->
+  <div id="game-container">
+    <div class="game-hud">
+      <div class="hud-item">
+        <span class="hud-label">시간</span>
+        <span class="hud-value" id="time-left">60</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">점수</span>
+        <span class="hud-value" id="score">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label">획득</span>
+        <span class="hud-value" id="caught">0</span>
+      </div>
+    </div>
+    <canvas id="game-canvas"></canvas>
+    <button onclick="endGame()" class="btn-primary" style="position: absolute; top: 20px; right: 20px; z-index: 1002;">❌ 종료</button>
+  </div>
+
+  <!-- 쿠폰 상세 모달 -->
+  <div id="coupon-modal" class="modal">
+    <div class="modal-content">
+      <h3 class="text-2xl font-bold mb-4" id="modal-title"></h3>
+      <div id="modal-body"></div>
+      <div class="flex gap-4 mt-6">
+        <button onclick="useCoupon()" class="btn-primary">사용하기</button>
+        <button onclick="closeModal()" class="btn-primary">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 네이버 로그인 버튼 (숨김) -->
+  <div id="naverIdLogin" style="display:none;"></div>
+
+  <script>
+    // ===== 전역 변수 =====
+    const API_URL = 'http://localhost:5000/api';
+    let currentUser = null;
+    let authToken = localStorage.getItem('token');
+    let allCoupons = [];
+    let selectedCoupon = null;
+    
+    // ===== 소셜 로그인 초기화 =====
+    
+    // 카카오 초기화
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      // 실제 JavaScript 키로 교체 필요
+      Kakao.init('YOUR_KAKAO_JAVASCRIPT_KEY');
+    }
+    
+    // 네이버 초기화
+    const naverLogin = new naver.LoginWithNaverId({
+      clientId: "YOUR_NAVER_CLIENT_ID", // 실제 클라이언트 ID로 교체
+      callbackUrl: window.location.origin + "/callback",
+      isPopup: false,
+      loginButton: { color: "green", type: 3, height: 50 }
+    });
+    
+    // ===== 소셜 로그인 함수 =====
+    
+    // 구글 로그인
+    async function loginWithGoogle() {
+      try {
+        // Google Identity Services 사용
+        google.accounts.id.initialize({
+          client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+          callback: handleGoogleCallback
+        });
+        
+        google.accounts.id.prompt(); // 원탭 로그인
+        
+        // 또는 팝업
+        // google.accounts.oauth2.initTokenClient({
+        //   client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+        //   scope: 'email profile',
+        //   callback: handleGoogleCallback
+        // }).requestAccessToken();
+        
+      } catch (error) {
+        console.error('Google login error:', error);
+        // 백엔드 없을 때 목업
+        handleSocialLoginSuccess({
+          provider: 'google',
+          email: 'user@gmail.com',
+          name: '구글사용자',
+          picture: 'https://via.placeholder.com/32'
+        });
+      }
+    }
+    
+    async function handleGoogleCallback(response) {
+      try {
+        // ID 토큰을 백엔드로 전송
+        const result = await fetch(`${API_URL}/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: response.credential })
+        });
+        
+        const data = await result.json();
+        handleSocialLoginSuccess(data);
+      } catch (error) {
+        console.error('Google callback error:', error);
+        handleSocialLoginSuccess({
+          provider: 'google',
+          email: 'user@gmail.com',
+          name: '구글사용자'
+        });
+      }
+    }
+    
+    // 카카오 로그인
+    async function loginWithKakao() {
+      try {
+        Kakao.Auth.login({
+          success: async function(authObj) {
+            // 사용자 정보 가져오기
+            Kakao.API.request({
+              url: '/v2/user/me',
+              success: async function(response) {
+                // 백엔드로 전송
+                try {
+                  const result = await fetch(`${API_URL}/auth/kakao`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      accessToken: authObj.access_token,
+                      kakaoId: response.id,
+                      email: response.kakao_account?.email,
+                      nickname: response.properties?.nickname
+                    })
+                  });
+                  
+                  const data = await result.json();
+                  handleSocialLoginSuccess(data);
+                } catch (error) {
+                  handleSocialLoginSuccess({
+                    provider: 'kakao',
+                    email: response.kakao_account?.email || 'user@kakao.com',
+                    name: response.properties?.nickname || '카카오사용자',
+                    picture: response.properties?.profile_image
+                  });
+                }
+              },
+              fail: function(error) {
+                console.error('Kakao user info error:', error);
+              }
+            });
+          },
+          fail: function(error) {
+            console.error('Kakao login error:', error);
+            // 목업
+            handleSocialLoginSuccess({
+              provider: 'kakao',
+              email: 'user@kakao.com',
+              name: '카카오사용자'
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Kakao init error:', error);
+        handleSocialLoginSuccess({
+          provider: 'kakao',
+          email: 'user@kakao.com',
+          name: '카카오사용자'
+        });
+      }
+    }
+    
+    // 네이버 로그인
+    async function loginWithNaver() {
+      try {
+        // 네이버 로그인 창 열기
+        const naverLoginBtn = document.getElementById('naverIdLogin').firstChild;
+        if (naverLoginBtn) {
+          naverLoginBtn.click();
+        } else {
+          // 목업
+          handleSocialLoginSuccess({
+            provider: 'naver',
+            email: 'user@naver.com',
+            name: '네이버사용자'
+          });
+        }
+      } catch (error) {
+        console.error('Naver login error:', error);
+        handleSocialLoginSuccess({
+          provider: 'naver',
+          email: 'user@naver.com',
+          name: '네이버사용자'
+        });
+      }
+    }
+    
+    // 네이버 콜백 처리 (페이지 로드 시)
+    window.addEventListener('load', function() {
+      naverLogin.getLoginStatus(async function(status) {
+        if (status) {
+          const email = naverLogin.user.getEmail();
+          const name = naverLogin.user.getName();
+          const profileImage = naverLogin.user.getProfileImage();
+          const id = naverLogin.user.getId();
+          
+          try {
+            const result = await fetch(`${API_URL}/auth/naver`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                naverId: id,
+                email: email,
+                name: name,
+                profileImage: profileImage
+              })
+            });
+            
+            const data = await result.json();
+            handleSocialLoginSuccess(data);
+          } catch (error) {
+            handleSocialLoginSuccess({
+              provider: 'naver',
+              email: email,
+              name: name,
+              picture: profileImage
+            });
+          }
+        }
+      });
+    });
+    
+    // 소셜 로그인 성공 처리
+    function handleSocialLoginSuccess(data) {
+      currentUser = {
+        email: data.email,
+        name: data.name,
+        picture: data.picture,
+        provider: data.provider
+      };
+      
+      if (data.token) {
+        authToken = data.token;
+        localStorage.setItem('token', authToken);
+      }
+      
+      updateUserUI();
+      alert(`${data.provider.toUpperCase()} 로그인 성공!\n환영합니다, ${data.name}님!`);
+      showPage('home');
+    }
+    
+    // 이메일 로그인 폼 토글
+    function toggleEmailForm() {
+      const form = document.getElementById('email-login-form');
+      const btn = document.getElementById('email-login-btn');
+      const socialBtns = document.querySelectorAll('.social-btn:not(#email-login-btn)');
+      
+      if (form.style.display === 'none') {
+        form.style.display = 'block';
+        btn.style.display = 'none';
+        socialBtns.forEach(b => b.style.display = 'none');
+        document.querySelector('.divider').style.display = 'none';
+      } else {
+        form.style.display = 'none';
+        btn.style.display = 'flex';
+        socialBtns.forEach(b => b.style.display = 'flex');
+        document.querySelector('.divider').style.display = 'flex';
+      }
+    }
+    
+    // 이메일 로그인
+    async function handleEmailLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          handleSocialLoginSuccess({
+            ...data.user,
+            token: data.token,
+            provider: 'email'
+          });
+        } else {
+          alert(data.error || '로그인 실패');
+        }
+      } catch (error) {
+        console.error('Email login error:', error);
+        handleSocialLoginSuccess({
+          provider: 'email',
+          email: email,
+          name: '사용자'
+        });
+      }
+    }
+    
+    // 회원가입
+    async function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const phone = document.getElementById('register-phone').value;
+      
+      try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: name,
+            email: email,
+            password: password,
+            contact_no: phone,
+            user_type: 'consumer'
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('회원가입 성공!');
+          handleSocialLoginSuccess({
+            ...data.user,
+            token: data.token,
+            provider: 'email'
+          });
+        } else {
+          alert(data.error || '회원가입 실패');
+        }
+      } catch (error) {
+        console.error('Register error:', error);
+        alert('회원가입 성공! (오프라인 모드)');
+        handleSocialLoginSuccess({
+          provider: 'email',
+          email: email,
+          name: name
+        });
+      }
+    }
+    
+    // UI 업데이트
+    function updateUserUI() {
+      const navUser = document.getElementById('nav-user');
+      
+      if (currentUser) {
+        navUser.innerHTML = `
+          <div class="user-info">
+            ${currentUser.picture ? 
+              `<img src="${currentUser.picture}" class="user-avatar" alt="${currentUser.name}">` :
+              `<div class="user-avatar"></div>`
+            }
+            <span>${currentUser.name}</span>
+            <button onclick="logout()" class="text-red-400">로그아웃</button>
+          </div>
+        `;
+      } else {
+        navUser.innerHTML = '<a href="#" onclick="showPage(\'login\')">👤 로그인</a>';
+      }
+    }
+    
+    // 로그아웃
+    function logout() {
+      currentUser = null;
+      authToken = null;
+      localStorage.removeItem('token');
+      
+      // 카카오 로그아웃
+      if (window.Kakao && Kakao.Auth.getAccessToken()) {
+        Kakao.Auth.logout();
+      }
+      
+      updateUserUI();
+      alert('로그아웃되었습니다.');
+      showPage('home');
+    }
+    
+    // ===== 페이지 관리 =====
+    function showPage(pageName) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(`${pageName}-page`).classList.add('active');
+      
+      if (pageName === 'wallet') {
+        loadWalletCoupons();
+      } else if (pageName === 'business') {
+        loadBusinessStats();
+      }
+    }
+    
+    // ===== 쿠폰 지갑 =====
+    async function loadWalletCoupons() {
+      if (!authToken) {
+        document.getElementById('coupon-list').innerHTML = '<p class="text-center text-gray-400">로그인이 필요합니다.</p>';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_URL}/coupons/my/wallet?status=available`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        const data = await response.json();
+        allCoupons = data.coupons || [];
+        renderCoupons(allCoupons);
+      } catch (error) {
+        console.error('Load coupons error:', error);
+        renderMockCoupons();
+      }
+    }
+    
+    function renderMockCoupons() {
+      const mockCoupons = [
+        { id: '1', title: '황금닭 치킨 20% 할인', rarity: 'rare', discount_value: 20, discount_type: 'percentage', business_name: '황금닭 치킨', is_used: false },
+        { id: '2', title: '스타벅스 5000원 할인', rarity: 'epic', discount_value: 5000, discount_type: 'fixed', business_name: '스타벅스', is_used: false },
+        { id: '3', title: '맥도날드 세트 무료', rarity: 'legendary', discount_value: 0, discount_type: 'freebie', business_name: '맥도날드', is_used: false }
+      ];
+      renderCoupons(mockCoupons);
+    }
+    
+    function renderCoupons(coupons) {
+      const container = document.getElementById('coupon-list');
+      
+      if (coupons.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-400">획득한 쿠폰이 없습니다. 게임을 플레이하세요!</p>';
+        return;
+      }
+      
+      container.innerHTML = coupons.map(coupon => `
+        <div class="coupon-card ${coupon.rarity}" onclick="openCouponModal('${coupon.id}')">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="rarity-badge ${coupon.rarity}">${coupon.rarity.toUpperCase()}</span>
+              <h3 class="text-xl font-bold">${coupon.title}</h3>
+              <p class="text-gray-400">${coupon.business_name}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-2xl font-bold text-cyan-400">
+                ${coupon.discount_type === 'percentage' ? coupon.discount_value + '%' : '₩' + coupon.discount_value.toLocaleString()}
+              </p>
+              <p class="text-sm ${coupon.is_used ? 'text-red-400' : 'text-green-400'}">
+                ${coupon.is_used ? '사용완료' : '사용가능'}
+              </p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function filterCoupons(status) {
+      if (status === 'all') {
+        renderCoupons(allCoupons);
+      } else {
+        const filtered = allCoupons.filter(c => {
+          if (status === 'available') return !c.is_used;
+          if (status === 'used') return c.is_used;
+          return true;
+        });
+        renderCoupons(filtered);
+      }
+    }
+    
+    function openCouponModal(couponId) {
+      selectedCoupon = allCoupons.find(c => c.id === couponId);
+      if (!selectedCoupon) return;
+      
+      document.getElementById('modal-title').textContent = selectedCoupon.title;
+      document.getElementById('modal-body').innerHTML = `
+        <p class="mb-2"><strong>상점:</strong> ${selectedCoupon.business_name}</p>
+        <p class="mb-2"><strong>할인:</strong> ${selectedCoupon.discount_type === 'percentage' ? selectedCoupon.discount_value + '%' : '₩' + selectedCoupon.discount_value.toLocaleString()}</p>
+        <p class="mb-2"><strong>희귀도:</strong> <span class="rarity-badge ${selectedCoupon.rarity}">${selectedCoupon.rarity.toUpperCase()}</span></p>
+        <p class="mb-2"><strong>상태:</strong> ${selectedCoupon.is_used ? '사용완료' : '사용가능'}</p>
+      `;
+      
+      document.getElementById('coupon-modal').classList.add('active');
+    }
+    
+    function closeModal() {
+      document.getElementById('coupon-modal').classList.remove('active');
+    }
+    
+    async function useCoupon() {
+      if (!selectedCoupon || selectedCoupon.is_used) {
+        alert('이미 사용된 쿠폰입니다.');
+        return;
+      }
+      
+      if (!authToken) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_URL}/coupons/use/${selectedCoupon.id}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ transactionId: null })
+        });
+        
+        if (response.ok) {
+          alert('쿠폰이 사용되었습니다!');
+          selectedCoupon.is_used = true;
+          closeModal();
+          loadWalletCoupons();
+        } else {
+          alert('쿠폰 사용 실패');
+        }
+      } catch (error) {
+        console.error('Use coupon error:', error);
+        alert('쿠폰 사용 완료! (오프라인 모드)');
+        selectedCoupon.is_used = true;
+        closeModal();
+        renderCoupons(allCoupons);
+      }
+    }
+    
+    // ===== 사업자 페이지 =====
+    async function loadBusinessStats() {
+      document.getElementById('total-issued').textContent = '127';
+      document.getElementById('total-used').textContent = '89';
+      document.getElementById('total-revenue').textContent = '₩2,340,000';
+      
+      const mockBusinessCoupons = [
+        { id: '1', title: '20% 할인 쿠폰', issued: 50, used: 38 },
+        { id: '2', title: '5000원 할인', issued: 77, used: 51 }
+      ];
+      
+      document.getElementById('business-coupon-list').innerHTML = mockBusinessCoupons.map(c => `
+        <div class="border-b border-gray-700 py-3">
+          <h4 class="font-bold">${c.title}</h4>
+          <p class="text-sm text-gray-400">발급: ${c.issued}개 | 사용: ${c.used}개</p>
+        </div>
+      `).join('');
+    }
+    
+    function openCouponIssueModal() {
+      alert('쿠폰 발급 모달 (구현 예정)');
+    }
+    
+    // ===== 3D 배경 ===== 
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas-3d'), alpha: true });
+    
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    camera.position.z = 50;
+    
+    const particleCount = 5000;
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
+      
+      const color = Math.random() < 0.5 ? new THREE.Color(0xa855f7) : new THREE.Color(0x22d3ee);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+    
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const material = new THREE.PointsMaterial({
+      size: 0.5,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending
+    });
+    
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+    
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      particles.rotation.x += 0.0002;
+      particles.rotation.y += 0.0003;
+      renderer.render(scene, camera);
+    }
+    animate3D();
+    
+    // ===== 3D 게임 =====
+    let gameScene, gameCamera, gameRenderer, coupons = [];
+    let score = 0, timeLeft = 60, caughtCount = 0;
+    let gameRunning = false;
+    let animationId = null;
+    let timerInterval = null;
+    let caughtCoupons = [];
+    
+    const rarities = {
+      common: { color: 0xcccccc, score: 10, name: '일반 쿠폰' },
+      rare: { color: 0x4a9eff, score: 50, name: '레어 쿠폰' },
+      epic: { color: 0xa855f7, score: 200, name: '에픽 쿠폰' },
+      legendary: { color: 0xfbbf24, score: 1000, name: '전설 쿠폰' },
+      mythic: { color: 0xff0000, score: 5000, name: '신화 쿠폰' }
+    };
+    
+    function startGame() {
+      if (!currentUser) {
+        alert('로그인이 필요합니다!');
+        showPage('login');
+        return;
+      }
+      
+      document.getElementById('game-container').classList.add('active');
+      
+      score = 0;
+      timeLeft = 60;
+      caughtCount = 0;
+      caughtCoupons = [];
+      gameRunning = true;
+      
+      updateHUD();
+      initGame();
+      
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          updateHUD();
+        } else {
+          endGame();
+        }
+      }, 1000);
+    }
+    
+    function initGame() {
+      const canvas = document.getElementById('game-canvas');
+      
+      gameScene = new THREE.Scene();
+      gameScene.background = new THREE.Color(0x0a0a0a);
+      
+      gameCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      gameCamera.position.z = 30;
+      
+      gameRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      gameRenderer.setSize(window.innerWidth, window.innerHeight);
+      gameRenderer.setPixelRatio(window.devicePixelRatio);
+      
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      gameScene.add(ambientLight);
+      
+      const pointLight = new THREE.PointLight(0x22d3ee, 1, 100);
+      pointLight.position.set(10, 10, 10);
+      gameScene.add(pointLight);
+      
+      createCoupons();
+      
+      canvas.addEventListener('click', onCanvasClick);
+      canvas.addEventListener('touchstart', onCanvasClick);
+      
+      animateGame();
+    }
+    
+    function createCoupons() {
+      coupons = [];
+      const couponCount = 15;
+      
+      for (let i = 0; i < couponCount; i++) {
+        const rand = Math.random();
+        let rarity;
+        if (rand < 0.70) rarity = 'common';
+        else if (rand < 0.90) rarity = 'rare';
+        else if (rand < 0.97) rarity = 'epic';
+        else if (rand < 0.995) rarity = 'legendary';
+        else rarity = 'mythic';
+        
+        const geometry = new THREE.OctahedronGeometry(3.75, 0);
+        const material = new THREE.MeshStandardMaterial({
+          color: rarities[rarity].color,
+          emissive: rarities[rarity].color,
+          emissiveIntensity: 0.3,
+          metalness: 0.8,
+          roughness: 0.2
+        });
+        
+        const coupon = new THREE.Mesh(geometry, material);
+        
+        coupon.position.x = (Math.random() - 0.5) * 40;
+        coupon.position.y = Math.random() * 40 - 10;
+        coupon.position.z = (Math.random() - 0.5) * 20;
+        
+        coupon.userData = {
+          rarity: rarity,
+          fallSpeed: 0.05 + Math.random() * 0.05,
+          active: true
+        };
+        
+        gameScene.add(coupon);
+        coupons.push(coupon);
+      }
+    }
+    
+    function animateGame() {
+      if (!gameRunning) return;
+      
+      animationId = requestAnimationFrame(animateGame);
+      
+      coupons.forEach((coupon) => {
+        if (coupon.userData.active) {
+          coupon.position.y -= coupon.userData.fallSpeed;
+          coupon.rotation.x += 0.01;
+          coupon.rotation.y += 0.02;
+          
+          if (coupon.position.y < -20) {
+            coupon.position.y = 20;
+            coupon.position.x = (Math.random() - 0.5) * 40;
+            coupon.position.z = (Math.random() - 0.5) * 20;
+          }
+        }
+      });
+      
+      gameRenderer.render(gameScene, gameCamera);
+    }
+    
+    function onCanvasClick(event) {
+      event.preventDefault();
+      
+      const canvas = document.getElementById('game-canvas');
+      const rect = canvas.getBoundingClientRect();
+      
+      const x = event.clientX || event.touches[0].clientX;
+      const y = event.clientY || event.touches[0].clientY;
+      
+      const mouse = new THREE.Vector2(
+        ((x - rect.left) / rect.width) * 2 - 1,
+        -((y - rect.top) / rect.height) * 2 + 1
+      );
+      
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, gameCamera);
+      
+      const intersects = raycaster.intersectObjects(coupons);
+      
+      if (intersects.length > 0) {
+        const hitCoupon = intersects[0].object;
+        if (hitCoupon.userData.active) {
+          catchCoupon(hitCoupon);
+        }
+      }
+    }
+    
+    async function catchCoupon(coupon) {
+      coupon.userData.active = false;
+      coupon.visible = false;
+      
+      const rarity = coupon.userData.rarity;
+      const points = rarities[rarity].score;
+      
+      score += points;
+      caughtCount++;
+      
+      caughtCoupons.push({
+        rarity: rarity,
+        name: rarities[rarity].name,
+        score: points
+      });
+      
+      updateHUD();
+      
+      if (navigator.vibrate) {
+        navigator.vibrate(100);
+      }
+    }
+    
+    function updateHUD() {
+      document.getElementById('time-left').textContent = timeLeft;
+      document.getElementById('score').textContent = score.toLocaleString();
+      document.getElementById('caught').textContent = caughtCount;
+    }
+    
+    function endGame() {
+      gameRunning = false;
+      clearInterval(timerInterval);
+      
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+      
+      document.getElementById('game-container').classList.remove('active');
+      
+      alert(`🎉 게임 종료!\n\n최종 점수: ${score.toLocaleString()}점\n획득 쿠폰: ${caughtCount}개\n\n쿠폰 지갑에서 확인하세요!`);
+      
+      caughtCoupons.forEach((c, i) => {
+        allCoupons.push({
+          id: 'game-' + Date.now() + '-' + i,
+          title: c.name,
+          rarity: c.rarity,
+          discount_value: c.score / 100,
+          discount_type: 'percentage',
+          business_name: '게임 보상',
+          is_used: false
+        });
+      });
+    }
+    
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      
+      if (gameCamera && gameRenderer) {
+        gameCamera.aspect = window.innerWidth / window.innerHeight;
+        gameCamera.updateProjectionMatrix();
+        gameRenderer.setSize(window.innerWidth, window.innerHeight);
+      }
+    });
+    
+    // 초기화
+    updateUserUI();
+    if (authToken && !currentUser) {
+      // 토큰으로 사용자 정보 복원 시도
+      fetch(`${API_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          currentUser = data.user;
+          updateUserUI();
+        }
+      })
+      .catch(() => {});
+    }
+  </script>
+</body>
+</html>

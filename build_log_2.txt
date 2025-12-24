@@ -1,0 +1,75 @@
+
+> nextjs-template@0.1.0 build C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt
+> next build
+
+   ??Next.js 15.2.4
+
+   Creating an optimized production build ...
+ ??Compiled successfully
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/37) ...
+   Generating static pages (9/37) 
+   Generating static pages (18/37) 
+   Generating static pages (27/37) 
+ ??Generating static pages (37/37)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+????/                                    9.22 kB         183 kB
+????/_not-found                            985 B         103 kB
+????/consumer                             273 kB         428 kB
+????/consumer/ar                         15.4 kB         204 kB
+??? /consumer/ar/[id]                    4.36 kB         190 kB
+????/consumer/login                      3.05 kB         164 kB
+??? /consumer/offers/[id]                 2.8 kB         149 kB
+????/consumer/orders                     8.86 kB         158 kB
+????/consumer/profile                     5.2 kB         178 kB
+????/consumer/stores                     7.63 kB         164 kB
+??? /consumer/stores/[id]                5.56 kB         159 kB
+????/consumer/wallet                     9.84 kB         166 kB
+????/crm/admin                           6.15 kB         119 kB
+????/crm/admin/connections               10.5 kB         163 kB
+????/crm/admin/hq                        9.59 kB         131 kB
+????/crm/admin/login                     5.03 kB         124 kB
+????/crm/admin/news                      8.39 kB         157 kB
+????/crm/admin/profile                   7.01 kB         158 kB
+??? /customers/[id]                      8.17 kB         164 kB
+??? /customers/[id]/edit                   964 B         193 kB
+????/customers/new                         709 B         192 kB
+????/dashboard                           12.2 kB         314 kB
+????/login                                2.6 kB         121 kB
+????/merchant                            15.2 kB         170 kB
+????/merchant/coupons                    12.7 kB         210 kB
+????/merchant/orders                     11.7 kB         194 kB
+????/merchant/outlets                    12.2 kB         195 kB
+????/merchant/products                   6.62 kB         197 kB
+????/merchant/settings                   13.3 kB         177 kB
+????/merchant/settlements                6.08 kB         184 kB
+????/merchant/stats                      20.8 kB         276 kB
+????/merchant/topup                       8.7 kB         179 kB
+????/merchants                           2.94 kB         167 kB
+??? /merchants/[id]                      6.63 kB         163 kB
+????/merchants/new                       6.52 kB         166 kB
+??? /next_api/consumer_summary             165 B         102 kB
+??? /next_api/example                      165 B         102 kB
+??? /next_api/stores                       165 B         102 kB
+??? /next_api/stores/[id]                  165 B         102 kB
+??? /next_api/stores/[id]/coupons          165 B         102 kB
+??? /next_api/stores/[id]/events           165 B         102 kB
+??? /next_api/stores/[id]/reviews          165 B         102 kB
+??? /next_api/zoer_health                  165 B         102 kB
+????/points                              3.17 kB         167 kB
+????/stats                               7.44 kB         263 kB
+??? /zoer_proxy/[...path]                  165 B         102 kB
++ First Load JS shared by all             102 kB
+  ??chunks/11eacf67-9e00b53690647b3c.js  53.2 kB
+  ??chunks/954-49720b6965abd8b3.js       46.2 kB
+  ??other shared chunks (total)          2.05 kB
+
+
+?? (Static)   prerendered as static content
+?  (Dynamic)  server-rendered on demand
+
