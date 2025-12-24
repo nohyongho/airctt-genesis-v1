@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRCTT - AR/XR 기반 쿠폰 & 이벤트 플랫폼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#ec4899',
+                        accent: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        * {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-container {
+            perspective: 1000px;
+        }
+
+        .game-card {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .game-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .phone-frame {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+
+        .phone-screen {
+            background: #fff;
+            border-radius: 32px;
+            overflow: hidden;
+        }
+
+        .tab-active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .coupon-card {
+            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+            border-left: 4px solid #6366f1;
+        }
+
+        .store-card {
+            background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 100%);
+        }
+
+        .rabbit-jump {
+            animation: rabbitJump 0.5s ease-in-out;
+        }
+
+        @keyframes rabbitJump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            animation: confettiFall 3s linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .modal-overlay {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">A</span>
+                    </div>
+                    <span class="font-bold text-xl text-gray-800">AIRCTT</span>
+                    <span class="text-xs text-gray-500 hidden sm:block">쿠폰톡톡</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="switchRole('consumer')" id="btn-consumer" class="px-4 py-2 rounded-full text-sm font-medium transition-all tab-active">
+                        소비자
+                    </button>
+                    <button onclick="switchRole('merchant')" id="btn-merchant" class="px-4 py-2 rounded-full text-sm font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">
+                        사업자
+                    </button>
+                    <button onclick="switchRole('admin')" id="btn-admin" class="px-4 py-2 rounded-full text-sm font-medium transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">
+                        관리자
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-10">
+        <!-- Consumer View -->
+        <div id="view-consumer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Hero Section -->
+            <section class="text-center py-12 fade-in">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+                    주변 매장의 <span class="text-primary">특별한 혜택</span>을<br>
+                    지금 바로 받아보세요
+                </h1>
+                <p class="text-gray-600 text-lg mb-8">
+                    게임으로 쿠폰 획득 • AR 피팅 체험 • 실시간 할인 정보
+                </p>
+                <div class="flex justify-center gap-4">
+                    <button onclick="showGame()" class="px-8 py-4 gradient-bg text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all pulse-animation">
+                        🎮 쿠폰 게임 시작
+                    </button>
+                    <button onclick="showStores()" class="px-8 py-4 bg-white text-primary border-2 border-primary rounded-2xl font-semibold hover:bg-primary hover:text-white transition-all">
+                        🏪 주변 매장 보기
+                    </button>
+                </div>
+            </section>
+
+            <!-- Phone Demo Section -->
+            <section class="flex justify-center py-8">
+                <div class="phone-frame w-80">
+                    <div class="phone-screen h-[600px] relative overflow-hidden">
+                        <!-- Phone Header -->
+                        <div class="gradient-bg p-4 text-white">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm opacity-80">안녕하세요!</p>
+                                    <p class="font-semibold">김민수님</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="bg-white/20 px-3 py-1 rounded-full text-sm">🪙 2,500P</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phone Content -->
+                        <div id="phone-content" class="p-4 space-y-4 overflow-y-auto h-[480px]">
+                            <!-- Nearby Stores -->
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                    <span class="text-lg">📍</span> 주변 매장
+                                </h3>
+                                <div class="space-y-3">
+                                    <div class="coupon-card rounded-xl p-3 shadow-sm card-hover cursor-pointer" onclick="showStoreDetail('jollibee')">
+                                        <div class="flex gap-3">
+                                            <img src="https://images.unsplash.com/photo-1568901346375-23c9450f58cd?w=100&h=100&fit=crop" class="w-16 h-16 rounded-lg object-cover">
+                                            <div class="flex-1">
+                                                <h4 class="font-semibold text-gray-800">Jollibee Business Bay</h4>
+                                                <p class="text-xs text-gray-500">패스트푸드 • 350m</p>
+                                                <span class="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full">🎁 쿠폰 3장</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="coupon-card rounded-xl p-3 shadow-sm card-hover cursor-pointer" onclick="showStoreDetail('cafe')">
+                                        <div class="flex gap-3">
+                                            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=100&h=100&fit=crop" class="w-16 h-16 rounded-lg object-cover">
+                                            <div class="flex-1">
+                                                <h4 class="font-semibold text-gray-800">스타벅스 두바이몰</h4>
+                                                <p class="text-xs text-gray-500">카페 • 520m</p>
+                                                <span class="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded-full">🎁 쿠폰 2장</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- My Coupons -->
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                    <span class="text-lg">🎟️</span> 내 쿠폰
+                                </h3>
+                                <div class="space-y-2">
+                                    <div class="bg-gradient-to-r from-primary to-purple-500 rounded-xl p-4 text-white shadow-lg">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="text-sm opacity-80">치킨버거</p>
+                                                <p class="text-2xl font-bold">10% 할인</p>
+                                                <p class="text-xs opacity-70 mt-2">Jollibee • ~12/31</p>
+                                            </div>
+                                            <button class="bg-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/30 transition">
+                                                사용하기
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl p-4 text-white shadow-lg">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="text-sm opacity-80">아메리카노</p>
+                                                <p class="text-2xl font-bold">1+1</p>
+                                                <p class="text-xs opacity-70 mt-2">스타벅스 • ~01/15</p>
+                                            </div>
+                                            <button class="bg-white/20 px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/30 transition">
+                                                사용하기
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Game -->
+                            <div class="bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl p-4 text-white">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="font-bold text-lg">🐰 토끼 점프 게임</p>
+                                        <p class="text-sm opacity-80">지금 플레이하고 쿠폰 받기!</p>
+                                    </div>
+                                    <button onclick="showGame()" class="bg-white text-purple-600 px-4 py-2 rounded-xl font-semibold hover:bg-gray-100 transition">
+                                        플레이
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phone Bottom Nav -->
+                        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3">
+                            <div class="flex justify-around">
+                                <button class="flex flex-col items-center text-primary">
+                                    <span class="text-xl">🏠</span>
+                                    <span class="text-xs mt-1">홈</span>
+                                </button>
+                                <button class="flex flex-col items-center text-gray-400 hover:text-primary transition">
+                                    <span class="text-xl">🎟️</span>
+                                    <span class="text-xs mt-1">쿠폰</span>
+                                </button>
+                                <button onclick="showGame()" class="flex flex-col items-center text-gray-400 hover:text-primary transition">
+                                    <span class="text-xl">🎮</span>
+                                    <span class="text-xs mt-1">게임</span>
+                                </button>
+                                <button class="flex flex-col items-center text-gray-400 hover:text-primary transition">
+                                    <span class="text-xl">👤</span>
+                                    <span class="text-xs mt-1">마이</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Grid -->
+            <section class="py-12">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">주요 기능</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+                            <span class="text-2xl">🎮</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-gray-800 mb-2">게임으로 쿠폰 획득</h3>
+                        <p class="text-gray-600 text-sm">토끼 점프, 슬롯 머신 등 재미있는 게임을 플레이하고 다양한 쿠폰을 획득하세요.</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center mb-4">
+                            <span class="text-2xl">📸</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-gray-800 mb-2">AR 가상 피팅</h3>
+                        <p class="text-gray-600 text-sm">증강현실로 옷, 신발, 액세서리를 가상으로 착용해보고 구매를 결정하세요.</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 shadow-lg card-hover">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
+                            <span class="text-2xl">📍</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-gray-800 mb-2">위치 기반 혜택</h3>
+                        <p class="text-gray-600 text-sm">현재 위치 기반으로 주변 매장의 실시간 할인 정보와 쿠폰을 받아보세요.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Merchant View -->
+        <div id="view-merchant" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section class="py-12">
+                <h1 class="text-3xl font-bold text-gray-800 mb-8">🏪 사업자 대시보드</h1>
+
+                <!-- Stats -->
+                <div class="grid md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">오늘 방문</p>
+                        <p class="text-3xl font-bold text-primary">127</p>
+                        <p class="text-xs text-green-500 mt-1">↑ 12% vs 어제</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">쿠폰 사용</p>
+                        <p class="text-3xl font-bold text-secondary">45</p>
+                        <p class="text-xs text-green-500 mt-1">↑ 8% vs 어제</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">매출</p>
+                        <p class="text-3xl font-bold text-accent">₩2.4M</p>
+                        <p class="text-xs text-green-500 mt-1">↑ 15% vs 어제</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">활성 쿠폰</p>
+                        <p class="text-3xl font-bold text-gray-800">8</p>
+                        <p class="text-xs text-gray-400 mt-1">3개 만료 예정</p>
+                    </div>
+                </div>
+
+                <!-- Store Settings -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Store Customization -->
+                    <div class="bg-white rounded-2xl p-6 shadow-lg">
+                        <h2 class="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+                            <span>🎨</span> 매장 꾸미기
+                        </h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">대표 이미지</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary transition cursor-pointer">
+                                    <span class="text-4xl">📷</span>
+                                    <p class="text-sm text-gray-500 mt-2">클릭하여 이미지 업로드</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">홍보 영상 URL</label>
+                                <input type="text" placeholder="https://youtube.com/..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">노출 반경</label>
+                                <div class="flex items-center gap-4">
+                                    <input type="range" min="0" max="20000" value="5000" class="flex-1" id="radiusSlider" oninput="updateRadius(this.value)">
+                                    <span id="radiusValue" class="text-sm font-medium text-gray-600 w-20">5km</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">홈페이지 URL</label>
+                                    <input type="text" placeholder="https://..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">예약 URL</label>
+                                    <input type="text" placeholder="https://..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                            </div>
+                            <button class="w-full py-3 gradient-bg text-white rounded-xl font-semibold hover:opacity-90 transition">
+                                저장하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Coupon Management -->
+                    <div class="bg-white rounded-2xl p-6 shadow-lg">
+                        <h2 class="font-bold text-lg text-gray-800 mb-4 flex items-center gap-2">
+                            <span>🎟️</span> 쿠폰 관리
+                        </h2>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                <div>
+                                    <p class="font-semibold text-gray-800">치킨버거 10% 할인</p>
+                                    <p class="text-xs text-gray-500">사용: 45/100 • ~12/31</p>
+                                </div>
+                                <span class="px-3 py-1 bg-green-100 text-green-600 text-xs rounded-full">활성</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                <div>
+                                    <p class="font-semibold text-gray-800">세트메뉴 1000원 할인</p>
+                                    <p class="text-xs text-gray-500">사용: 78/100 • ~01/15</p>
+                                </div>
+                                <span class="px-3 py-1 bg-green-100 text-green-600 text-xs rounded-full">활성</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                <div>
+                                    <p class="font-semibold text-gray-800">음료 무료 업그레이드</p>
+                                    <p class="text-xs text-gray-500">사용: 100/100 • ~12/20</p>
+                                </div>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">소진</span>
+                            </div>
+                            <button class="w-full py-3 border-2 border-primary text-primary rounded-xl font-semibold hover:bg-primary hover:text-white transition">
+                                + 새 쿠폰 만들기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Admin View -->
+        <div id="view-admin" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section class="py-12">
+                <h1 class="text-3xl font-bold text-gray-800 mb-8">👑 관리자 대시보드</h1>
+
+                <!-- Admin Stats -->
+                <div class="grid md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">전체 가맹점</p>
+                        <p class="text-3xl font-bold text-primary">1,247</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">활성 사용자</p>
+                        <p class="text-3xl font-bold text-secondary">45,892</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">오늘 발급 쿠폰</p>
+                        <p class="text-3xl font-bold text-accent">3,456</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-6 shadow-lg">
+                        <p class="text-sm text-gray-500">승인 대기</p>
+                        <p class="text-3xl font-bold text-red-500">12</p>
+                    </div>
+                </div>
+
+                <!-- Store Management -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-bold text-lg text-gray-800">🏪 매장 관리</h2>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="매장 검색..." class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary">
+                            <select class="px-4 py-2 border border-gray-200 rounded-xl text-sm">
+                                <option>전체 상태</option>
+                                <option>활성</option>
+                                <option>비활성</option>
+                                <option>대기중</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="text-left text-sm text-gray-500 border-b">
+                                    <th class="pb-3">매장명</th>
+                                    <th class="pb-3">카테고리</th>
+                                    <th class="pb-3">위치</th>
+                                    <th class="pb-3">상태</th>
+                                    <th class="pb-3">미디어</th>
+                                    <th class="pb-3">액션</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-4 font-medium">Jollibee Business Bay</td>
+                                    <td class="py-4 text-gray-500">패스트푸드</td>
+                                    <td class="py-4 text-gray-500">두바이</td>
+                                    <td class="py-4"><span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs">활성</span></td>
+                                    <td class="py-4">
+                                        <span class="text-gray-500">📷 5 📹 1</span>
+                                    </td>
+                                    <td class="py-4">
+                                        <button class="text-primary hover:underline mr-2">편집</button>
+                                        <button class="text-red-500 hover:underline">정지</button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-4 font-medium">스타벅스 두바이몰</td>
+                                    <td class="py-4 text-gray-500">카페</td>
+                                    <td class="py-4 text-gray-500">두바이</td>
+                                    <td class="py-4"><span class="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs">활성</span></td>
+                                    <td class="py-4">
+                                        <span class="text-gray-500">📷 8 📹 2</span>
+                                    </td>
+                                    <td class="py-4">
+                                        <button class="text-primary hover:underline mr-2">편집</button>
+                                        <button class="text-red-500 hover:underline">정지</button>
+                                    </td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-4 font-medium">패션 부티크</td>
+                                    <td class="py-4 text-gray-500">의류</td>
+                                    <td class="py-4 text-gray-500">서울</td>
+                                    <td class="py-4"><span class="px-2 py-1 bg-yellow-100 text-yellow-600 rounded-full text-xs">대기중</span></td>
+                                    <td class="py-4">
+                                        <span class="text-gray-500">📷 3 📹 0</span>
+                                    </td>
+                                    <td class="py-4">
+                                        <button class="text-green-500 hover:underline mr-2">승인</button>
+                                        <button class="text-red-500 hover:underline">거절</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Media Moderation -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h2 class="font-bold text-lg text-gray-800 mb-4">🖼️ 미디어 모더레이션</h2>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="relative group">
+                            <img src="https://images.unsplash.com/photo-1568901346375-23c9450f58cd?w=200&h=200&fit=crop" class="w-full h-40 object-cover rounded-xl">
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-xl flex items-center justify-center gap-2">
+                                <button class="p-2 bg-white rounded-full text-green-500 hover:bg-green-50">✓</button>
+                                <button class="p-2 bg-white rounded-full text-red-500 hover:bg-red-50">✕</button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Jollibee - 대표이미지</p>
+                        </div>
+                        <div class="relative group">
+                            <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=200&h=200&fit=crop" class="w-full h-40 object-cover rounded-xl">
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-xl flex items-center justify-center gap-2">
+                                <button class="p-2 bg-white rounded-full text-green-500 hover:bg-green-50">✓</button>
+                                <button class="p-2 bg-white rounded-full text-red-500 hover:bg-red-50">✕</button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">스타벅스 - 갤러리</p>
+                        </div>
+                        <div class="relative group">
+                            <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?w=200&h=200&fit=crop" class="w-full h-40 object-cover rounded-xl">
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-xl flex items-center justify-center gap-2">
+                                <button class="p-2 bg-white rounded-full text-green-500 hover:bg-green-50">✓</button>
+                                <button class="p-2 bg-white rounded-full text-red-500 hover:bg-red-50">✕</button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">버거킹 - 홍보이미지</p>
+                        </div>
+                        <div class="relative group">
+                            <div class="w-full h-40 bg-gray-100 rounded-xl flex items-center justify-center">
+                                <span class="text-4xl">🎬</span>
+                            </div>
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition rounded-xl flex items-center justify-center gap-2">
+                                <button class="p-2 bg-white rounded-full text-green-500 hover:bg-green-50">✓</button>
+                                <button class="p-2 bg-white rounded-full text-red-500 hover:bg-red-50">✕</button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">패션부티크 - 홍보영상</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div id="game-modal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="closeGame()"></div>
+        <div class="absolute inset-4 md:inset-20 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="gradient-bg p-4 text-white flex items-center justify-between">
+                <h2 class="text-xl font-bold">🐰 토끼 점프 게임</h2>
+                <button onclick="closeGame()" class="p-2 hover:bg-white/20 rounded-full transition">✕</button>
+            </div>
+            <div class="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-b from-sky-100 to-green-100">
+                <div id="game-area" class="relative w-full max-w-md h-80 bg-gradient-to-b from-sky-200 to-green-200 rounded-2xl overflow-hidden shadow-inner">
+                    <!-- Clouds -->
+                    <div class="absolute top-10 left-10 w-16 h-8 bg-white rounded-full opacity-80"></div>
+                    <div class="absolute top-20 right-16 w-20 h-10 bg-white rounded-full opacity-80"></div>
+
+                    <!-- Ground -->
+                    <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-green-600 to-green-400"></div>
+
+                    <!-- Rabbit -->
+                    <div id="rabbit" class="absolute bottom-16 left-1/2 -translate-x-1/2 text-6xl transition-transform duration-300">
+                        🐰
+                    </div>
+
+                    <!-- Obstacles -->
+                    <div id="obstacle" class="absolute bottom-16 right-0 text-4xl hidden">
+                        🌵
+                    </div>
+
+                    <!-- Score -->
+                    <div class="absolute top-4 right-4 bg-white/80 px-4 py-2 rounded-full">
+                        <span class="font-bold">점수: </span><span id="score">0</span>
+                    </div>
+                </div>
+
+                <div id="game-start" class="mt-8 text-center">
+                    <p class="text-gray-600 mb-4">스페이스바 또는 화면을 터치하여 점프!</p>
+                    <button onclick="startGame()" class="px-8 py-4 gradient-bg text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition pulse-animation">
+                        게임 시작
+                    </button>
+                </div>
+
+                <div id="game-result" class="mt-8 text-center hidden">
+                    <p class="text-2xl font-bold text-gray-800 mb-2">🎉 축하합니다!</p>
+                    <p class="text-gray-600 mb-4">쿠폰을 획득했습니다!</p>
+                    <div class="bg-gradient-to-r from-primary to-purple-500 rounded-xl p-4 text-white inline-block mb-4">
+                        <p class="text-sm opacity-80">치킨버거</p>
+                        <p class="text-2xl font-bold">10% 할인</p>
+                    </div>
+                    <br>
+                    <button onclick="closeGame()" class="px-6 py-3 bg-gray-100 text-gray-800 rounded-xl font-semibold hover:bg-gray-200 transition">
+                        확인
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center gap-2 mb-4 md:mb-0">
+                    <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold">A</span>
+                    </div>
+                    <span class="font-bold">AIRCTT</span>
+                    <span class="text-gray-400 text-sm">쿠폰톡톡</span>
+                </div>
+                <p class="text-gray-400 text-sm">© 2025 AIRCTT. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Role Switching
+        function switchRole(role) {
+            // Hide all views
+            document.getElementById('view-consumer').classList.add('hidden');
+            document.getElementById('view-merchant').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+
+            // Reset all buttons
+            document.getElementById('btn-consumer').classList.remove('tab-active');
+            document.getElementById('btn-consumer').classList.add('bg-gray-100', 'text-gray-600');
+            document.getElementById('btn-merchant').classList.remove('tab-active');
+            document.getElementById('btn-merchant').classList.add('bg-gray-100', 'text-gray-600');
+            document.getElementById('btn-admin').classList.remove('tab-active');
+            document.getElementById('btn-admin').classList.add('bg-gray-100', 'text-gray-600');
+
+            // Show selected view and activate button
+            document.getElementById(`view-${role}`).classList.remove('hidden');
+            document.getElementById(`btn-${role}`).classList.add('tab-active');
+            document.getElementById(`btn-${role}`).classList.remove('bg-gray-100', 'text-gray-600');
+        }
+
+        // Game Functions
+        let gameRunning = false;
+        let score = 0;
+        let gameInterval;
+
+        function showGame() {
+            document.getElementById('game-modal').classList.remove('hidden');
+            document.getElementById('game-start').classList.remove('hidden');
+            document.getElementById('game-result').classList.add('hidden');
+            score = 0;
+            document.getElementById('score').textContent = '0';
+        }
+
+        function closeGame() {
+            document.getElementById('game-modal').classList.add('hidden');
+            gameRunning = false;
+            if (gameInterval) clearInterval(gameInterval);
+        }
+
+        function startGame() {
+            document.getElementById('game-start').classList.add('hidden');
+            gameRunning = true;
+            score = 0;
+
+            // Simple game simulation
+            gameInterval = setInterval(() => {
+                if (!gameRunning) return;
+                score += 10;
+                document.getElementById('score').textContent = score;
+
+                if (score >= 100) {
+                    endGame(true);
+                }
+            }, 500);
+
+            // Add jump listener
+            document.addEventListener('keydown', handleJump);
+            document.getElementById('game-area').addEventListener('click', handleJump);
+        }
+
+        function handleJump(e) {
+            if (!gameRunning) return;
+            if (e.type === 'keydown' && e.code !== 'Space') return;
+
+            const rabbit = document.getElementById('rabbit');
+            rabbit.classList.add('rabbit-jump');
+            setTimeout(() => rabbit.classList.remove('rabbit-jump'), 500);
+        }
+
+        function endGame(success) {
+            gameRunning = false;
+            if (gameInterval) clearInterval(gameInterval);
+            document.removeEventListener('keydown', handleJump);
+
+            if (success) {
+                document.getElementById('game-result').classList.remove('hidden');
+                createConfetti();
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 50);
+            }
+        }
+
+        // Store Functions
+        function showStores() {
+            alert('주변 매장 목록을 불러오는 중...');
+        }
+
+        function showStoreDetail(store) {
+            alert(`${store} 매장 상세 페이지로 이동합니다.`);
+        }
+
+        // Radius Slider
+        function updateRadius(value) {
+            const km = value >= 1000 ? (value / 1000).toFixed(1) + 'km' : value + 'm';
+            document.getElementById('radiusValue').textContent = km;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('AIRCTT Interactive Demo Loaded');
+        });
+    </script>
+</body>
+</html>

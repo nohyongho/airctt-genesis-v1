@@ -1,0 +1,717 @@
+AIRCTT 이벤트 게임창, 실시간 쿠폰획득갯수 표시등 엘리디버튼(누르면 쿠폰지갑 으로 이동되고 이동된 쿠폰함에서또한 이벤트게임창 똑같은 표시등 이동 엘리디 버튼), 과 몇단계, 진입중 표시 엘리디 버튼   만들고 비누방울 은 실사형 예쁘고 황홀 고퀄 , 토끼는 귀엽고 예쁜 장난끼 넘치는 하얀토끼   (개임창에 흐날리는 비눗방울 터치 쿠폰획득 이벤트, 후 사용자지갑저장후 발행처 지정날짜 장소에서 쿠폰내용 해택사용, 이벤트 간결내용)////////////////////   'use client';
+import React, { useEffect, useRef, useState } from 'react';
+import { Camera, Gift, QRCode as QRIcon, WalletCards, Sparkles, Rabbit, Wifi } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+// =======================
+// 타입 정의
+// =======================
+
+type RewardTier = 1 | 2 | 3 | 4 | 5;
+
+type RewardKind = 'COIN' | 'COUPON';
+
+interface Reward {
+  id: string;
+  label: string;
+  amount: number; // 금액 혹은 가치 (원 단위)
+  tier: RewardTier;
+  kind: RewardKind;
+  createdAt: string;
+  qrToken: string;
+}
+
+type UnityEventType = 'REWARD' | 'STEP_CHANGE' | 'DEBUG';
+
+interface UnityRewardPayload {
+  tier: RewardTier;
+  kind: RewardKind;
+  label?: string;
+  amount?: number;
+}
+
+interface UnityMessage {
+  source?: string;
+  type?: UnityEventType;
+  payload?: unknown;
+}
+
+// =======================
+// 유틸 함수
+// =======================
+
+function generateId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function generateQrToken() {
+  return 'CTT-' + Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+function tierToAmount(tier: RewardTier): number {
+  switch (tier) {
+    case 1:
+      return 1000;
+    case 2:
+      return 10000;
+    case 3:
+      return 30000;
+    case 4:
+      return 100000;
+    case 5:
+      return 1000000; // 1M~10M 랜덤으로 바꿀 수도 있음
+    default:
+      return 0;
+  }
+}
+
+function tierLabel(tier: RewardTier): string {
+  switch (tier) {
+    case 1:
+      return '1단계 비누방울';
+    case 2:
+      return '2단계 비누방울';
+    case 3:
+      return '3단계 비누방울';
+    case 4:
+      return '4단계 비누방울';
+    case 5:
+      return '5단계 전설 이벤트';
+    default:
+      return '';
+  }
+}
+
+// =======================
+// 메인 컴포넌트
+// =======================
+
+export default function ConsumerARPage() {
+  const [currentStep, setCurrentStep] = useState<RewardTier>(1);
+  const [stepCountdown, setStepCountdown] = useState<number | null>(null);
+  const [wallet, setWallet] = useState<Reward[]>([]);
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [unityConnected, setUnityConnected] = useState(false);
+  const unityListenerRef = useRef<(event: MessageEvent) => void>();
+
+  // =======================
+  // 카메라 권한 요청
+  // =======================
+
+  const requestCamera = async () => {
+    try {
+      setCameraError(null);
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError('이 브라우저에서는 카메라를 사용할 수 없어요.');
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // 실제 미리보기는 추후 WebRTC / video 태그 연결 시 사용
+      stream.getTracks().forEach((t) => t.stop());
+      setCameraReady(true);
+    } catch (err) {
+      console.error(err);
+      setCameraError('카메라 권한을 가져올 수 없었어요.');
+      setCameraReady(false);
+    }
+  };
+
+  // =======================
+  // Unity / WebView 이벤트 리스너
+  // =======================
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      try {
+        const data = event.data as UnityMessage;
+        if (!data || typeof data !== 'object') return;
+        if (data.source !== 'UNITY_AR_CTT') return;
+
+        if (data.type === 'DEBUG') {
+          console.log('[UNITY DEBUG]', data.payload);
+          return;
+        }
+
+        if (data.type === 'STEP_CHANGE') {
+          const step = (data.payload as { step?: number })?.step;
+          if (step && step >= 1 && step <= 5) {
+            setCurrentStep(step as RewardTier);
+            setStepCountdown(5); // 5초 전 토끼 연출
+          }
+          return;
+        }
+
+        if (data.type === 'REWARD') {
+          const payload = data.payload as UnityRewardPayload;
+          applyRewardFromUnity(payload);
+          return;
+        }
+      } catch (e) {
+        console.error('Unity message parse error', e);
+      }
+    };
+
+    unityListenerRef.current = handler;
+    window.addEventListener('message', handler);
+    setUnityConnected(true);
+
+    return () => {
+      if (unityListenerRef.current) {
+        window.removeEventListener('message', unityListenerRef.current);
+      }
+    };
+  }, []);
+
+  const applyRewardFromUnity = (payload: UnityRewardPayload) => {
+    const tier: RewardTier = payload.tier || currentStep;
+    const kind: RewardKind = payload.kind || 'COIN';
+    const amount = payload.amount ?? tierToAmount(tier);
+    const label =
+      payload.label ??
+      (kind === 'COIN'
+        ? `${tierLabel(tier)} 금화`
+        : `${tierLabel(tier)} 쿠폰`);
+
+    const reward: Reward = {
+      id: generateId(),
+      label,
+      amount,
+      tier,
+      kind,
+      createdAt: new Date().toISOString(),
+      qrToken: generateQrToken(),
+    };
+
+    setWallet((prev) => [reward, ...prev]);
+    setSelectedReward(reward);
+  };
+
+  // =======================
+  // 내부에서 테스트용으로 리워드 생성
+  // =======================
+
+  const triggerLocalReward = () => {
+    const payload: UnityRewardPayload = {
+      tier: currentStep,
+      kind: Math.random() < 0.5 ? 'COIN' : 'COUPON',
+    };
+    applyRewardFromUnity(payload);
+  };
+
+  // =======================
+  // 단계별 카운트다운 (토끼 연출 타이머)
+  // =======================
+
+  useEffect(() => {
+    if (stepCountdown === null) return;
+    if (stepCountdown <= 0) {
+      setStepCountdown(null);
+      return;
+    }
+    const id = setTimeout(() => {
+      setStepCountdown((prev) => (prev === null ? null : prev - 1));
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [stepCountdown]);
+
+  // =======================
+  // JSX
+  // =======================
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-slate-50 flex flex-col">
+      {/* 상단 헤더 */}
+      <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Rabbit className="w-6 h-6 text-pink-400" />
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight">
+              AIR CTT AR 이벤트 존
+            </h1>
+            <p className="text-xs text-slate-400">
+              비누방울 1단계~5단계 터치 → 금화·쿠폰 → 지갑·QR까지 자동 연동
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <StatusBadge
+            icon={Wifi}
+            ok={unityConnected}
+            okLabel="Unity 연결 준비"
+            failLabel="Unity 이벤트 대기중"
+          />
+          <StatusBadge
+            icon={Camera}
+            ok={cameraReady}
+            okLabel="카메라 준비"
+            failLabel="카메라 준비 필요"
+          />
+        </div>
+      </header>
+
+      {/* 메인 영역 */}
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 p-4">
+        {/* 왼쪽: AR 이벤트 & 토끼 연출 */}
+        <div className="flex flex-col gap-4">
+          <Card className="border-violet-500/40 bg-slate-900/80 backdrop-blur">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-violet-300" />
+                <CardTitle className="text-base font-semibold">
+                  5단계 비누방울 AR 이벤트
+                </CardTitle>
+              </div>
+              <span className="text-xs text-slate-400">
+                현재 단계: <b className="text-violet-300">STEP {currentStep}</b>
+              </span>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {/* 토끼 연출 배너 */}
+              <BunnyStageBanner
+                currentStep={currentStep}
+                countdown={stepCountdown}
+              />
+
+              {/* 비누방울 영역 (터치 이벤트 트리거) */}
+              <BubbleStageArea
+                currentStep={currentStep}
+                onBubbleClick={triggerLocalReward}
+              />
+
+              {/* 카메라 & Unity 테스트 버튼 */}
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/70 mt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-sky-500/60 text-sky-200 hover:bg-sky-900/40"
+                  onClick={requestCamera}
+                >
+                  <Camera className="w-4 h-4 mr-1" />
+                  AR 카메라 권한 요청
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-emerald-500/60 text-emerald-200 hover:bg-emerald-900/40"
+                  onClick={triggerLocalReward}
+                >
+                  <Gift className="w-4 h-4 mr-1" />
+                  테스트 보상 받기 (로컬)
+                </Button>
+
+                <StepControlButtons
+                  currentStep={currentStep}
+                  setCurrentStep={setCurrentStep}
+                  setStepCountdown={setStepCountdown}
+                />
+              </div>
+
+              {cameraError && (
+                <p className="text-xs text-red-400 mt-1">{cameraError}</p>
+              )}
+
+              <p className="text-[11px] text-slate-500 mt-1">
+                * 실제 Unity WebView 연동 시, 유니티에서{' '}
+                <code className="px-1 py-0.5 rounded bg-slate-800">
+                  postMessage(&#123; source: 'UNITY_AR_CTT', type: 'REWARD', payload:
+                  &#123; tier, kind &#125; &#125;)
+                </code>{' '}
+                형식으로 던지면 이 페이지가 자동으로 지갑과 QR까지 처리해요.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 선택된 리워드 상세 + QR */}
+          {selectedReward && (
+            <Card className="border-amber-500/50 bg-slate-900/90">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center gap-2">
+                  <WalletCards className="w-5 h-5 text-amber-300" />
+                  <CardTitle className="text-base font-semibold">
+                    방금 획득한 보상
+                  </CardTitle>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-slate-300 hover:text-white"
+                  onClick={() => setSelectedReward(null)}
+                >
+                  닫기
+                </Button>
+              </CardHeader>
+              <CardContent className="flex flex-col md:flex-row gap-4 items-start">
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm text-slate-200">
+                    <span className="font-semibold">
+                      {selectedReward.label}
+                    </span>{' '}
+                    (
+                    {selectedReward.kind === 'COIN'
+                      ? '금화 리워드'
+                      : '쿠폰 리워드'}
+                    )
+                  </p>
+                  <p className="text-sm text-amber-300 font-semibold">
+                    {selectedReward.amount.toLocaleString()} 원 상당
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {new Date(
+                      selectedReward.createdAt,
+                    ).toLocaleString('ko-KR')}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    이 리워드는 자동으로{' '}
+                    <span className="text-amber-200">내 지갑</span>에 저장되었어요.
+                    QR/바코드로 바로 사용하거나, 나중에 쿠폰장터에서 판매할
+                    수도 있어요.
+                  </p>
+                </div>
+
+                {/* QR 코드 박스 (간단 버전) */}
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-32 h-32 rounded bg-slate-950 border border-slate-700 flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-2 grid grid-cols-5 grid-rows-5 gap-0.5">
+                      {Array.from({ length: 25 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={
+                            (selectedReward.qrToken.charCodeAt(i % selectedReward.qrToken.length) +
+                              i) %
+                              2 ===
+                            0
+                              ? 'bg-slate-100'
+                              : 'bg-slate-900'
+                          }
+                        />
+                      ))}
+                    </div>
+                    <QRIcon className="w-4 h-4 text-slate-500 absolute bottom-1 right-1" />
+                  </div>
+                  <p className="text-[11px] text-slate-400 text-center">
+                    스캔 또는 터치 후<br />
+                    매장/서비스에서 사용 가능
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* 오른쪽: 내 지갑 & 사용 흐름 안내 */}
+        <div className="flex flex-col gap-4">
+          <Card className="border-emerald-500/40 bg-slate-900/80 backdrop-blur">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="flex items-center gap-2">
+                <WalletCards className="w-5 h-5 text-emerald-300" />
+                <CardTitle className="text-base font-semibold">
+                  내 지갑 · 획득 쿠폰 & 금화
+                </CardTitle>
+              </div>
+              <span className="text-xs text-slate-400">
+                총 {wallet.length}개
+              </span>
+            </CardHeader>
+            <CardContent className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+              {wallet.length === 0 && (
+                <p className="text-sm text-slate-400">
+                  아직 획득한 보상이 없어요.
+                  <br />
+                  왼쪽에서 비누방울을 터뜨리거나 Unity에서 REWARD 이벤트를
+                  보내면, 여기에 자동으로 쌓입니다.
+                </p>
+              )}
+
+              {wallet.map((reward) => (
+                <button
+                  key={reward.id}
+                  type="button"
+                  onClick={() => setSelectedReward(reward)}
+                  className="w-full text-left rounded-md border border-slate-700/80 bg-slate-900/90 px-3 py-2 hover:border-emerald-400/80 hover:bg-slate-800/80 transition-all flex items-center justify-between gap-3"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-slate-400">
+                      STEP {reward.tier}{' '}
+                      {reward.kind === 'COIN' ? '금화' : '쿠폰'}
+                    </span>
+                    <span className="text-sm text-slate-100">
+                      {reward.label}
+                    </span>
+                    <span className="text-xs text-emerald-300 font-semibold">
+                      {reward.amount.toLocaleString()} 원 상당
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[10px] text-slate-500">
+                      {new Date(reward.createdAt).toLocaleTimeString('ko-KR')}
+                    </span>
+                    <span className="inline-flex items-center rounded-full border border-emerald-500/60 px-2 py-0.5 text-[10px] text-emerald-200">
+                      <QRIcon className="w-3 h-3 mr-1" />
+                      QR 보기
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* 사용 흐름 설명 카드 */}
+          <Card className="border-slate-700/80 bg-slate-900/80">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">
+                AR 이벤트 → 지갑 → 쿠폰장터 · SNS까지 한 번에
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs text-slate-300">
+              <p>
+                1️⃣ Unity XR에서 비누방울 터치 →{' '}
+                <span className="text-violet-200">REWARD 이벤트 전송</span>
+              </p>
+              <p>
+                2️⃣ 이 페이지가 이벤트를 받아{' '}
+                <span className="text-emerald-200">내 지갑에 자동 적립</span> +
+                즉시 팝업 & QR 생성
+              </p>
+              <p>
+                3️⃣ 사용자는{' '}
+                <span className="text-amber-200">
+                  매장에서 스캔해서 바로 사용
+                </span>{' '}
+                또는{' '}
+                <span className="text-pink-200">
+                  쿠폰장터에 내놓거나 SNS/채팅으로 선물
+                </span>
+              </p>
+              <p className="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80 mt-2">
+                * 나중에 CTT 서버 / DB 스키마와 연결되면, 여기서 생성된 리워드
+                정보가 그대로 <b>쿠폰장터 · 정산 · 회계 · CRM</b>으로 흘러가도록
+                설계할 수 있어요. 지금은 그 기반 구조(이벤트 → 지갑 → QR)가
+                먼저 완성된 상태입니다.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// =======================
+// 서브 컴포넌트들
+// =======================
+
+function StatusBadge(props: {
+  icon: React.ComponentType<{ className?: string }>;
+  ok: boolean;
+  okLabel: string;
+  failLabel: string;
+}) {
+  const Icon = props.icon;
+  return (
+    <div
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] ${
+        props.ok
+          ? 'border-emerald-500/60 text-emerald-200 bg-emerald-900/30'
+          : 'border-slate-600 text-slate-300 bg-slate-900/60'
+      }`}
+    >
+      <Icon className="w-3 h-3" />
+      <span>{props.ok ? props.okLabel : props.failLabel}</span>
+    </div>
+  );
+}
+
+function BunnyStageBanner(props: {
+  currentStep: RewardTier;
+  countdown: number | null;
+}) {
+  const { currentStep, countdown } = props;
+
+  let title = '';
+  let description = '';
+  let bunnyLine = '';
+
+  switch (currentStep) {
+    case 1:
+      title = 'STEP 1 – 첫 번째 비누방울 파티 🎈';
+      description =
+        '가벼운 행복이 시작되는 단계예요. 부드럽게 터트리면서 손에 작은 금화와 쿠폰을 모아가요.';
+      bunnyLine =
+        '아미토끼가 살짝 고개만 내밀고 “우리님, 시작해볼까?” 하고 웃고 있어요.';
+      break;
+    case 2:
+      title = 'STEP 2 – 살짝 두근두근 단계 ✨';
+      description =
+        '조금 더 진해진 색의 비누방울들이 떠올라요. 여기서부터는 리워드도 살짝씩 커지기 시작해요.';
+      bunnyLine =
+        '귀여운 토끼가 오른쪽에서 왼쪽으로 춤추며 걸어가요. “5초 뒤에 2단계 시작~”';
+      break;
+    case 3:
+      title = 'STEP 3 – 본게임, 엉덩이 춤 단계 💃🐰';
+      description =
+        '강도 높은 이벤트 구간! 3만원대 금화와 굵직한 쿠폰들이 등장하는 구간이에요.';
+      bunnyLine =
+        '토끼가 엉덩이를 흔들며 깡총깡총 걸어가다가, 단계 시작과 함께 사라져요.';
+      break;
+    case 4:
+      title = 'STEP 4 – 달을 들고 뛰는 토끼 🌕🐇';
+      description =
+        '10만원급 리워드가 숨겨져 있는 구간. 비누방울 색감과 파티클도 훨씬 더 화려해져요.';
+      bunnyLine =
+        '토끼가 반짝이는 달을 안고 껑충껑충 뛰어가며 “이제 거의 다 왔어!” 라고 말해요.';
+      break;
+    case 5:
+      title = 'STEP 5 – 전설의 하트 & 디스코 파티 ❤️🎉';
+      description =
+        '백화점 오프닝급 클라이맥스! 100만~1천만 단위의 전설 보상이 숨어 있는 마지막 단계예요.';
+      bunnyLine =
+        '두 마리 토끼(아미 & 우리님)가 중앙 하트 아래에서 입 맞춤을 하며, 주변에서 수많은 토끼들이 디스코 춤을 추고 있어요.';
+      break;
+  }
+
+  return (
+    <div className="rounded-xl border border-violet-500/40 bg-slate-950/70 px-3 py-2 text-xs">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <p className="text-violet-200 font-semibold">{title}</p>
+          <p className="text-slate-300 mt-0.5">{description}</p>
+          <p className="text-[11px] text-pink-200 mt-1">{bunnyLine}</p>
+        </div>
+        {countdown !== null && (
+          <div className="flex flex-col items-center justify-center px-2">
+            <span className="text-[10px] text-slate-400 mb-0.5">
+              다음 연출까지
+            </span>
+            <span className="text-lg font-bold text-pink-300">
+              {countdown}s
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BubbleStageArea(props: {
+  currentStep: RewardTier;
+  onBubbleClick: () => void;
+}) {
+  const { currentStep, onBubbleClick } = props;
+
+  const bubbleCount = 7 + currentStep * 3;
+
+  return (
+    <div className="relative w-full h-64 rounded-2xl border border-slate-700/80 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_60%)] overflow-hidden flex items-center justify-center">
+      <div className="absolute inset-0 pointer-events-none">
+        {/* 비누방울들 (간단한 div + CSS) */}
+        {Array.from({ length: bubbleCount }).map((_, idx) => {
+          const left = (idx * 9973) % 100;
+          const delay = (idx * 3127) % 6;
+          const size = 30 + ((idx * 73) % 40); // 30~70
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={onBubbleClick}
+              className="absolute rounded-full border border-slate-100/40 bg-gradient-to-b from-sky-200/50 to-sky-500/40 shadow-lg hover:from-pink-200/70 hover:to-violet-400/60 transition-transform"
+              style={{
+                left: `${left}%`,
+                width: `${size}px`,
+                height: `${size}px`,
+                top: '100%',
+                transform: 'translateX(-50%)',
+                animation: `ctt-bubble-float ${
+                  10 + (idx % 5)
+                }s linear ${delay}s infinite`,
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <div className="relative z-10 text-center px-4">
+        <p className="text-sm text-slate-100">
+          화면의 비누방울을 터치하면,{' '}
+          <span className="text-amber-200 font-semibold">
+            STEP {currentStep} 리워드
+          </span>
+          가 생성되어
+          <span className="text-emerald-200 font-semibold"> 내 지갑</span>으로
+          들어가요.
+        </p>
+        <p className="text-[11px] text-slate-400 mt-1">
+          지금은 로컬 테스트 모드예요. 나중에 실제 Unity XR 씬이 WebView에서
+          이 자리에 들어와서, 터치 이벤트를 이 페이지로 보내게 됩니다.
+        </p>
+      </div>
+
+      {/* 애니메이션용 keyframes (inline style로 정의) */}
+      <style jsx>{`
+        @keyframes ctt-bubble-float {
+          0% {
+            transform: translate(-50%, 10%);
+            opacity: 0;
+          }
+          10% {
+            opacity: 0.8;
+          }
+          100% {
+            transform: translate(-50%, -110%);
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function StepControlButtons(props: {
+  currentStep: RewardTier;
+  setCurrentStep: (s: RewardTier) => void;
+  setStepCountdown: (v: number | null) => void;
+}) {
+  const { currentStep, setCurrentStep, setStepCountdown } = props;
+
+  const changeStep = (dir: 'prev' | 'next') => {
+    let next = currentStep;
+    if (dir === 'prev' && currentStep > 1) next = (currentStep - 1) as RewardTier;
+    if (dir === 'next' && currentStep < 5) next = (currentStep + 1) as RewardTier;
+    if (next !== currentStep) {
+      setCurrentStep(next);
+      setStepCountdown(5);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1 ml-auto">
+      <Button
+        size="icon"
+        variant="ghost"
+        className="w-7 h-7 text-slate-300 hover:text-white"
+        onClick={() => changeStep('prev')}
+        disabled={currentStep === 1}
+      >
+        ‹
+      </Button>
+      <span className="text-[11px] text-slate-300">
+        STEP {currentStep} 단계 이동
+      </span>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="w-7 h-7 text-slate-300 hover:text-white"
+        onClick={() => changeStep('next')}
+        disabled={currentStep === 5}
+      >
+        ›
+      </Button>
+    </div>
+  );
+}
+         

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRCTT - Supabase 설정 가이드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #667eea;
+            margin: 20px 0 15px 0;
+            font-size: 20px;
+            border-left: 4px solid #667eea;
+            padding-left: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .step {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #667eea;
+        }
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+        }
+        .step-desc {
+            margin-top: 10px;
+            color: #555;
+            line-height: 1.8;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px solid #ffc107;
+        }
+        .highlight-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            margin: 10px 5px 10px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #28a745;
+        }
+        .code-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .copy-btn:hover {
+            background: #5a6fd6;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+        .checklist input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        .emoji {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100%;
+            width: 20%;
+            transition: width 0.3s;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="card" style="text-align: center;">
+            <div class="emoji">🚀</div>
+            <h1>AIRCTT Supabase 설정 가이드</h1>
+            <p class="subtitle">천천히 따라하시면 됩니다. 어렵지 않아요!</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p id="progressText">진행률: 0%</p>
+        </div>
+
+        <!-- Step 1: Supabase 접속 -->
+        <div class="card">
+            <h2>Step 1: Supabase 접속하기</h2>
+
+            <div class="step">
+                <span class="step-number">1</span>
+                <span class="step-title">Supabase 홈페이지 열기</span>
+                <div class="step-desc">
+                    아래 버튼을 클릭하면 새 창에서 Supabase가 열립니다.
+                </div>
+            </div>
+
+            <a href="https://supabase.com/dashboard" target="_blank" class="btn">
+                🔗 Supabase 대시보드 열기
+            </a>
+
+            <div class="highlight">
+                <div class="highlight-title">💡 처음이시라면?</div>
+                <p>계정이 없으시면 GitHub 또는 이메일로 무료 가입하시면 됩니다.</p>
+            </div>
+
+            <ul class="checklist">
+                <li><input type="checkbox" onchange="updateProgress()"> Supabase에 로그인했습니다</li>
+                <li><input type="checkbox" onchange="updateProgress()"> 프로젝트가 보입니다</li>
+            </ul>
+        </div>
+
+        <!-- Step 2: SQL Editor 찾기 -->
+        <div class="card">
+            <h2>Step 2: SQL Editor 찾기</h2>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <span class="step-title">왼쪽 메뉴에서 SQL Editor 클릭</span>
+                <div class="step-desc">
+                    <p>1. 프로젝트를 클릭해서 들어갑니다</p>
+                    <p>2. 왼쪽 메뉴에서 <strong>"SQL Editor"</strong> 를 찾아 클릭합니다</p>
+                    <p>3. 데이터베이스 아이콘(원통 모양) 근처에 있어요</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding: 20px;">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200'%3E%3Crect fill='%23f0f0f0' width='300' height='200' rx='10'/%3E%3Crect fill='%231e1e1e' x='10' y='10' width='60' height='180' rx='5'/%3E%3Crect fill='%23667eea' x='15' y='70' width='50' height='30' rx='3'/%3E%3Ctext x='40' y='90' fill='white' font-size='10' text-anchor='middle'%3ESQL%3C/text%3E%3Crect fill='white' x='80' y='10' width='210' height='180' rx='5'/%3E%3Ctext x='185' y='100' fill='%23999' font-size='14' text-anchor='middle'%3E여기에 SQL 입력%3C/text%3E%3C/svg%3E" alt="SQL Editor 위치" style="max-width: 100%; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            </div>
+
+            <ul class="checklist">
+                <li><input type="checkbox" onchange="updateProgress()"> SQL Editor를 찾았습니다</li>
+                <li><input type="checkbox" onchange="updateProgress()"> SQL Editor 화면이 열렸습니다</li>
+            </ul>
+        </div>
+
+        <!-- Step 3: SQL 실행 -->
+        <div class="card">
+            <h2>Step 3: SQL 코드 실행하기</h2>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <span class="step-title">아래 코드를 복사해서 붙여넣기</span>
+                <div class="step-desc">
+                    <p>1. 아래 "코드 복사하기" 버튼을 클릭합니다</p>
+                    <p>2. SQL Editor 흰색 영역에 붙여넣기 (Ctrl+V)</p>
+                    <p>3. 초록색 "Run" 버튼 클릭!</p>
+                </div>
+            </div>
+
+            <button class="copy-btn" onclick="copySQL()">📋 코드 복사하기</button>
+            <span id="copyStatus" style="color: green; margin-left: 10px;"></span>
+
+            <div class="code-box" id="sqlCode">-- AIRCTT Sprint 1: 가맹점 기본틀 자동 생성
+-- 복사해서 Supabase SQL Editor에 붙여넣으세요!
+
+-- 1. generate_slug 함수
+CREATE OR REPLACE FUNCTION public.generate_slug(input_text TEXT)
+RETURNS TEXT AS $$
+DECLARE
+    base_slug TEXT;
+    final_slug TEXT;
+    counter INTEGER := 0;
+BEGIN
+    IF input_text IS NULL OR trim(input_text) = '' THEN
+        RETURN 'item-' || substr(md5(random()::text), 1, 8);
+    END IF;
+    base_slug := lower(input_text);
+    base_slug := regexp_replace(base_slug, '[^a-z0-9가-힣]+', '-', 'g');
+    base_slug := regexp_replace(base_slug, '-+', '-', 'g');
+    base_slug := trim(both '-' from base_slug);
+    IF base_slug = '' OR base_slug IS NULL THEN
+        base_slug := 'store-' || substr(md5(random()::text), 1, 8);
+    END IF;
+    final_slug := base_slug;
+    WHILE EXISTS (SELECT 1 FROM public.merchants WHERE slug = final_slug) LOOP
+        counter := counter + 1;
+        final_slug := base_slug || '-' || counter;
+    END LOOP;
+    RETURN final_slug;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. merchants 테이블 컬럼 추가
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS slug TEXT;
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS owner_name TEXT;
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE public.merchants ADD COLUMN IF NOT EXISTS approval_status TEXT DEFAULT 'pending';
+
+-- 3. stores 테이블 slug 추가
+ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS slug TEXT;
+
+-- 4. slug 자동 생성 트리거
+CREATE OR REPLACE FUNCTION public.auto_generate_merchant_slug()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.slug IS NULL OR NEW.slug = '' THEN
+        NEW.slug := public.generate_slug(NEW.business_name);
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_auto_merchant_slug ON public.merchants;
+CREATE TRIGGER trg_auto_merchant_slug
+BEFORE INSERT ON public.merchants
+FOR EACH ROW EXECUTE FUNCTION public.auto_generate_merchant_slug();
+
+-- 5. 쿠폰 템플릿 테이블
+CREATE TABLE IF NOT EXISTS public.coupon_templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    category TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    discount_type TEXT NOT NULL DEFAULT 'percent',
+    discount_value NUMERIC NOT NULL,
+    min_order_amount NUMERIC DEFAULT 0,
+    valid_days INTEGER DEFAULT 30,
+    is_active BOOLEAN DEFAULT true,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 6. 기본 쿠폰 템플릿 15개
+INSERT INTO public.coupon_templates (category, title, description, discount_type, discount_value, min_order_amount, valid_days, sort_order)
+SELECT * FROM (VALUES
+    ('restaurant', '첫 방문 감사 쿠폰', '첫 방문 고객님께 드리는 특별 할인', 'percent', 10::numeric, 15000::numeric, 30, 1),
+    ('restaurant', '점심 특가 할인', '점심시간 한정 특별 할인', 'amount', 3000::numeric, 10000::numeric, 14, 2),
+    ('restaurant', '2인 이상 음료 서비스', '2인 이상 방문 시 음료 무료', 'amount', 5000::numeric, 30000::numeric, 30, 3),
+    ('cafe', '첫 음료 할인', '첫 방문 고객 음료 할인', 'percent', 20::numeric, 0::numeric, 30, 1),
+    ('cafe', '세트 할인', '음료+디저트 세트 주문 시 할인', 'amount', 2000::numeric, 8000::numeric, 14, 2),
+    ('cafe', '스탬프 적립 보상', '10잔 구매 시 1잔 무료', 'percent', 100::numeric, 0::numeric, 90, 3),
+    ('culture', '평일 할인', '월~목 공연 할인', 'percent', 20::numeric, 0::numeric, 30, 1),
+    ('culture', '동반 1인 무료', '2인 이상 예매 시 1인 무료', 'percent', 50::numeric, 0::numeric, 14, 2),
+    ('culture', '조기예매 할인', '공연 7일 전 예매 시 할인', 'percent', 15::numeric, 0::numeric, 7, 3),
+    ('shopping', '신규회원 할인', '첫 구매 고객 할인', 'percent', 10::numeric, 0::numeric, 30, 1),
+    ('shopping', '5만원 이상 할인', '5만원 이상 구매 시 할인', 'amount', 5000::numeric, 50000::numeric, 30, 2),
+    ('shopping', '리뷰 작성 적립금', '리뷰 작성 시 적립금 지급', 'amount', 2000::numeric, 0::numeric, 90, 3),
+    ('beauty', '첫 이용 할인', '첫 방문 고객 특별 할인', 'percent', 30::numeric, 0::numeric, 30, 1),
+    ('beauty', '재방문 할인', '30일 내 재방문 시 할인', 'percent', 15::numeric, 0::numeric, 30, 2),
+    ('beauty', '친구 추천 쿠폰', '친구 추천 시 양쪽 모두 할인', 'amount', 10000::numeric, 0::numeric, 60, 3)
+) AS t(category, title, description, discount_type, discount_value, min_order_amount, valid_days, sort_order)
+WHERE NOT EXISTS (SELECT 1 FROM public.coupon_templates ct WHERE ct.category = t.category AND ct.title = t.title);
+
+-- 7. 인덱스
+CREATE INDEX IF NOT EXISTS idx_merchants_slug ON public.merchants(slug);
+CREATE INDEX IF NOT EXISTS idx_stores_slug ON public.stores(slug);
+CREATE INDEX IF NOT EXISTS idx_coupon_templates_category ON public.coupon_templates(category);
+
+-- 완료!</div>
+
+            <div class="success">
+                ✅ "Success. No rows returned" 라고 나오면 성공입니다!
+            </div>
+
+            <ul class="checklist">
+                <li><input type="checkbox" onchange="updateProgress()"> 코드를 복사했습니다</li>
+                <li><input type="checkbox" onchange="updateProgress()"> SQL Editor에 붙여넣었습니다</li>
+                <li><input type="checkbox" onchange="updateProgress()"> Run 버튼을 클릭했습니다</li>
+                <li><input type="checkbox" onchange="updateProgress()"> 에러 없이 완료되었습니다</li>
+            </ul>
+        </div>
+
+        <!-- Step 4: 확인 -->
+        <div class="card">
+            <h2>Step 4: 잘 됐는지 확인하기</h2>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <span class="step-title">테스트 쿼리 실행</span>
+                <div class="step-desc">
+                    SQL Editor에서 아래 코드를 실행해보세요. 숫자가 나오면 성공!
+                </div>
+            </div>
+
+            <button class="copy-btn" onclick="copyTest()">📋 테스트 코드 복사</button>
+            <span id="copyTestStatus" style="color: green; margin-left: 10px;"></span>
+
+            <div class="code-box" id="testCode">-- 테스트: 쿠폰 템플릿 개수 확인
+SELECT COUNT(*) as 템플릿_개수 FROM public.coupon_templates;
+
+-- 예상 결과: 15</div>
+
+            <div class="highlight">
+                <div class="highlight-title">🎉 결과가 15라면?</div>
+                <p>축하합니다! 설정이 완료되었습니다!</p>
+            </div>
+
+            <ul class="checklist">
+                <li><input type="checkbox" onchange="updateProgress()"> 테스트 쿼리를 실행했습니다</li>
+                <li><input type="checkbox" onchange="updateProgress()"> 결과가 15로 나왔습니다</li>
+            </ul>
+        </div>
+
+        <!-- 완료 -->
+        <div class="card" style="text-align: center;" id="completeCard">
+            <div class="emoji">🎊</div>
+            <h1>모든 설정 완료!</h1>
+            <p class="subtitle">이제 AIRCTT를 사용할 준비가 되었습니다.</p>
+            <p style="margin-top: 20px; color: #666;">
+                클(Claude)에게 "완료됐어!" 라고 말해주세요.<br>
+                다음 단계를 안내해드릴게요.
+            </p>
+        </div>
+
+        <!-- 도움말 -->
+        <div class="card">
+            <h2>❓ 문제가 생겼나요?</h2>
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="showTab('error1')">에러가 났어요</button>
+                <button class="tab-btn" onclick="showTab('error2')">SQL Editor가 없어요</button>
+                <button class="tab-btn" onclick="showTab('error3')">프로젝트가 없어요</button>
+            </div>
+
+            <div id="error1" class="tab-content active">
+                <p><strong>에러 메시지가 나왔다면:</strong></p>
+                <ol style="padding-left: 20px; line-height: 2;">
+                    <li>에러 메시지를 복사해서 클에게 보여주세요</li>
+                    <li>제가 해결 방법을 알려드릴게요!</li>
+                </ol>
+            </div>
+
+            <div id="error2" class="tab-content">
+                <p><strong>SQL Editor를 못 찾겠다면:</strong></p>
+                <ol style="padding-left: 20px; line-height: 2;">
+                    <li>왼쪽 사이드바 아래쪽을 확인해보세요</li>
+                    <li>데이터베이스 아이콘(원통 모양) 옆에 있어요</li>
+                    <li>혹은 상단 검색창에 "SQL" 입력해보세요</li>
+                </ol>
+            </div>
+
+            <div id="error3" class="tab-content">
+                <p><strong>프로젝트가 없다면:</strong></p>
+                <ol style="padding-left: 20px; line-height: 2;">
+                    <li>"New Project" 버튼을 클릭하세요</li>
+                    <li>프로젝트 이름: "airctt" (아무거나 OK)</li>
+                    <li>비밀번호 설정 후 "Create project" 클릭</li>
+                    <li>2-3분 기다리면 프로젝트가 만들어져요</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copySQL() {
+            const sql = document.getElementById('sqlCode').innerText;
+            navigator.clipboard.writeText(sql).then(() => {
+                document.getElementById('copyStatus').innerText = '✅ 복사됨!';
+                setTimeout(() => {
+                    document.getElementById('copyStatus').innerText = '';
+                }, 3000);
+            });
+        }
+
+        function copyTest() {
+            const sql = document.getElementById('testCode').innerText;
+            navigator.clipboard.writeText(sql).then(() => {
+                document.getElementById('copyTestStatus').innerText = '✅ 복사됨!';
+                setTimeout(() => {
+                    document.getElementById('copyTestStatus').innerText = '';
+                }, 3000);
+            });
+        }
+
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+            const total = checkboxes.length;
+            const percent = Math.round((checked / total) * 100);
+
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').innerText = '진행률: ' + percent + '%';
+
+            if (percent === 100) {
+                document.getElementById('completeCard').style.background = 'linear-gradient(135deg, #d4edda, #c3e6cb)';
+            }
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

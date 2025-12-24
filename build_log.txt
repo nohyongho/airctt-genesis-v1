@@ -1,0 +1,71 @@
+
+> nextjs-template@0.1.0 build C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt
+> next build
+
+   ??Next.js 15.2.4
+
+   Creating an optimized production build ...
+Failed to compile.
+
+src\app\layout.tsx
+An error occurred in `next/font`.
+
+Error: Cannot find module '@tailwindcss/postcss'
+Require stack:
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\index.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\index.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack-config.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack-build\impl.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1420:15)
+    at C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\server\require-hook.js:55:36
+    at require.resolve (node:internal/modules/helpers:163:19)
+    at loadPlugin (C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js:53:32)
+    at C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js:185:56
+    at Array.map (<anonymous>)
+    at getPostCssPlugins (C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js:185:47)
+    at async C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\index.js:125:36
+    at async C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\loaders\next-font-loader\index.js:94:33
+    at async Span.traceAsyncFn (C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\trace\trace.js:157:20)
+
+src\app\layout.tsx
+An error occurred in `next/font`.
+
+Error: Cannot find module '@tailwindcss/postcss'
+Require stack:
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\index.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\index.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack-config.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack-build\impl.js
+- C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1420:15)
+    at C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\server\require-hook.js:55:36
+    at require.resolve (node:internal/modules/helpers:163:19)
+    at loadPlugin (C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js:53:32)
+    at C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js:185:56
+    at Array.map (<anonymous>)
+    at getPostCssPlugins (C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\plugins.js:185:47)
+    at async C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\config\blocks\css\index.js:125:36
+    at async C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\build\webpack\loaders\next-font-loader\index.js:94:33
+    at async Span.traceAsyncFn (C:\Users\zeus1\OneDrive\Desktop\ctt-ant\airctt-jem\airctt\node_modules\.pnpm\next@15.2.4_react-dom@19.1.0_react@19.1.0__react@19.1.0\node_modules\next\dist\trace\trace.js:157:20)
+
+./src/app/consumer/ar/[id]/page.tsx
+Module not found: Can't resolve '@/components/ui/button'
+
+https://nextjs.org/docs/messages/module-not-found
+
+./src/app/consumer/ar/[id]/page.tsx
+Module not found: Can't resolve '@/components/ui/card'
+
+https://nextjs.org/docs/messages/module-not-found
+
+./src/app/consumer/ar/[id]/page.tsx
+Module not found: Can't resolve '@/components/ui/badge'
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+> Build failed because of webpack errors
+?덭LIFECYCLE??Command failed with exit code 1.
