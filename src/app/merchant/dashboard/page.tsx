@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -21,7 +21,24 @@ interface CouponTemplate {
   discountValue: number;
 }
 
-export default function MerchantDashboard() {
+// Suspense boundary를 위한 래퍼 컴포넌트
+export default function MerchantDashboardPage() {
+    return (
+        <Suspense fallback={<DashboardSkeleton />}>
+            <MerchantDashboard />
+        </Suspense>
+    );
+}
+
+function DashboardSkeleton() {
+    return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="animate-pulse text-slate-400">로딩 중...</div>
+        </div>
+    );
+}
+
+function MerchantDashboard() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [showOnboarding, setShowOnboarding] = useState(false);
