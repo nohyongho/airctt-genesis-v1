@@ -6,7 +6,6 @@ import { QrCode, Printer, Download, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { QRCodeSVG } from 'qrcode.react'; // Need to install this, but using standard img for now if unavailable
 import { toast } from 'sonner';
 
 export default function TableQrManagePage() {

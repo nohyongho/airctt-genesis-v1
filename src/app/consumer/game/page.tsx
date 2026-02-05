@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import EventGameWindow from '@/components/consumer/EventGameWindow';
+import CouponGameWindow from '@/components/consumer/CouponGameWindow';
 import { toast } from 'sonner';
 
 export default function GamePage() {
@@ -20,7 +20,7 @@ export default function GamePage() {
 
     return (
         <div className="w-full h-screen bg-black">
-            <EventGameWindow
+            <CouponGameWindow
                 onCouponAcquired={handleCouponAcquired}
                 onClose={handleClose}
                 lang="ko"

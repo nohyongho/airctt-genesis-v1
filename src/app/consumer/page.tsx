@@ -55,8 +55,8 @@ export default function MarketplaceMain() {
           <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600" />
           <div className="absolute inset-0 flex flex-col justify-center p-6 text-white">
             <span className="bg-white/20 w-fit px-2 py-1 rounded text-xs font-bold mb-2 backdrop-blur-sm">Real-time Event</span>
-            <h2 className="text-2xl font-bold leading-tight mb-1">지금 접속하면<br />50% 쿠폰 잭팟! 💎</h2>
-            <p className="text-sm opacity-90">내 주변 하늘에서 선물이 쏟아집니다.</p>
+            <h2 className="text-2xl font-bold leading-tight mb-1">지금 접속하면<br />50% 쿠폰 잭팟! 🎫</h2>
+            <p className="text-sm opacity-90">쿠폰 게임에서 행운을 잡으세요!</p>
           </div>
           {/* 3D or Image placeholder */}
           <div className="absolute right-[-20px] bottom-[-20px] w-32 h-32 bg-yellow-300 rounded-full blur-2xl opacity-50" />

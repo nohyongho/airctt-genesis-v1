@@ -27,6 +27,7 @@ interface CartItem {
   unit_price: number;
   options: any;
   special_request: string;
+  status: string;
   products: Product;
 }
 

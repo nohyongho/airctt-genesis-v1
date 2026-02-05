@@ -18,13 +18,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AIRCTT - 위치기반 AR 쿠폰 플랫폼",
-  description: "위치기반 증강현실 디지털 재화를 이용한 차세대 광고 시스템. AR 피팅, 실시간 분석, 스마트 지갑까지.",
-  keywords: ["AIRCTT", "쿠폰", "AR", "증강현실", "위치기반", "피팅", "매장", "사업자", "소비자", "디지털재화"],
-  authors: [{ name: "AIRCTT" }],
+  title: "AIRCTT - AI Reality CouponTalkTalk",
+  description: "누구나 쉽게 쿠폰을 얻고 사용하는 차세대 디지털 쿠폰 플랫폼. 쿠폰 게임, 스마트 지갑, 가맹점 연동까지.",
+  keywords: ["AIRCTT", "쿠폰톡톡", "CouponTalkTalk", "쿠폰", "할인", "가맹점", "소비자", "디지털쿠폰", "petctt", "구름장터"],
+  authors: [{ name: "AIRCTT - (주)발로레" }],
   openGraph: {
-    title: "AIRCTT - 위치기반 AR 쿠폰 플랫폼",
-    description: "위치기반 증강현실 디지털 재화를 이용한 차세대 광고 시스템",
+    title: "AIRCTT - AI Reality CouponTalkTalk",
+    description: "누구나 쉽게 쿠폰을 얻고 사용하는 차세대 디지털 쿠폰 플랫폼",
     type: "website",
     url: "https://airctt.com",
   },

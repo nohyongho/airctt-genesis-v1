@@ -36,65 +36,65 @@ export default function LandingPage() {
 
   const mainButtons = [
     {
-      id: 'consumer',
-      label: '소비자',
-      sublabel: 'Consumer',
-      description: '위치기반 쿠폰 & AR 피팅',
+      id: 'coupon',
+      label: '쿠폰톡톡',
+      sublabel: 'CouponTalkTalk',
+      description: '쿠폰 게임 & 스마트 지갑',
       icon: ShoppingBag,
       color: 'from-cyan-500 via-blue-500 to-indigo-500',
       shadowColor: 'shadow-cyan-500/30',
       href: '/consumer',
-      features: ['위치기반 쿠폰', 'AR 피팅', '포인트 적립'],
+      features: ['쿠폰 게임', '스마트 지갑', '포인트 적립'],
     },
     {
-      id: 'merchant',
-      label: '사업자',
-      sublabel: 'Merchant',
-      description: '매장 관리 & 광고 시스템',
+      id: 'market',
+      label: '구름장터',
+      sublabel: 'Cloud Market',
+      description: '가맹점 & 거래소',
       icon: Store,
       color: 'from-violet-500 via-purple-500 to-pink-500',
       shadowColor: 'shadow-violet-500/30',
       href: '/merchant',
-      features: ['쿠폰 발급', '매출 분석', 'AR 광고'],
+      features: ['가맹점 관리', '쿠폰 발급', '매출 분석'],
     },
     {
       id: 'wallet',
       label: '지갑',
       sublabel: 'Wallet',
-      description: '디지털 재화 & 결제',
+      description: '디지털 쿠폰 & 포인트',
       icon: Wallet,
       color: 'from-amber-500 via-orange-500 to-red-500',
       shadowColor: 'shadow-amber-500/30',
       href: '/consumer/wallet',
-      features: ['포인트 충전', '결제 내역', '송금하기'],
+      features: ['포인트 충전', '쿠폰 거래', '결제 내역'],
     },
   ];
 
   const features = [
     {
       icon: MapPin,
-      title: '위치기반 서비스',
+      title: '위치기반 쿠폰',
       description: 'GPS 기반 맞춤 쿠폰 추천',
       color: 'text-cyan-500',
       bgColor: 'bg-cyan-500/10',
     },
     {
       icon: Scan,
-      title: 'AR 증강현실',
-      description: '가상 피팅 & 3D 상품 체험',
+      title: '쿠폰 게임',
+      description: '재미있는 게임으로 쿠폰 획득',
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
     },
     {
       icon: Layers,
-      title: '디지털 재화',
-      description: '블록체인 기반 포인트 시스템',
+      title: '쿠폰 거래소',
+      description: '구름장터에서 쿠폰 거래',
       color: 'text-pink-500',
       bgColor: 'bg-pink-500/10',
     },
     {
       icon: TrendingUp,
-      title: '실시간 분석',
+      title: '가맹점 분석',
       description: '매출 및 고객 데이터 분석',
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10',
@@ -104,26 +104,26 @@ export default function LandingPage() {
   const techFeatures = [
     {
       icon: Navigation,
-      title: '위치기반 광고',
-      description: '사용자 위치에 따른 맞춤형 AR 광고 노출',
+      title: '위치기반 쿠폰 배포',
+      description: '사용자 위치에 따른 맞춤형 쿠폰 노출',
       patent: '특허 10-2019-0071298',
     },
     {
       icon: Eye,
-      title: '증강현실 체험',
-      description: '실시간 AR 피팅 및 상품 미리보기',
-      patent: '특허 기술 적용',
+      title: '스마트 알고리즘',
+      description: '어려운 분들에게 자연스럽게 행운의 쿠폰을',
+      patent: '자체 알고리즘',
     },
     {
       icon: Cpu,
       title: 'AI 추천 시스템',
-      description: '사용자 행동 분석 기반 맞춤 추천',
+      description: '사용자 행동 분석 기반 맞춤 쿠폰 추천',
       patent: 'AI/ML 기술',
     },
     {
       icon: Wifi,
-      title: '실시간 연동',
-      description: '매장-소비자 실시간 데이터 동기화',
+      title: '실시간 거래소',
+      description: '구름장터에서 쿠폰 실시간 거래',
       patent: '클라우드 기술',
     },
   ];
@@ -207,15 +207,15 @@ export default function LandingPage() {
             </Badge>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">위치기반 AR</span>
+              <span className="bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">쿠폰톡톡</span>
               <br />
-              <span className="text-foreground">디지털 재화 플랫폼</span>
+              <span className="text-foreground">누구나 쉽게, 누구나 행복하게</span>
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
-              증강현실 기술과 위치기반 서비스를 결합한
+              게임으로 쿠폰을 얻고, 구름장터에서 거래하는
               <br className="hidden sm:block" />
-              차세대 쿠폰 & 광고 시스템
+              차세대 디지털 쿠폰 플랫폼
             </p>
 
             {/* Patent Badge */}
@@ -473,7 +473,7 @@ export default function LandingPage() {
                     지금 바로 시작하세요
                   </h2>
                   <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
-                    AIRCTT와 함께 위치기반 AR 광고의 새로운 세계를 경험하세요.
+                    AIRCTT와 함께 쿠폰의 새로운 세계를 경험하세요.
                     무료로 시작할 수 있습니다.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
@@ -513,7 +513,7 @@ export default function LandingPage() {
               <span className="font-semibold text-sm sm:text-base">AIRCTT</span>
             </div>
             <p className="text-[10px] sm:text-sm text-muted-foreground text-center">
-              © 2024 AIRCTT. All rights reserved. | airctt.com
+              © 2025 AIRCTT (주)발로레. All rights reserved. | airctt.com
             </p>
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="ghost" size="sm" className="text-muted-foreground text-[10px] sm:text-sm h-8">

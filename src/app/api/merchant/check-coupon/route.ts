@@ -2,6 +2,11 @@
 import { NextResponse } from 'next/server';
 import { createPostgrestClient } from '@/lib/postgrest';
 
+function extractCoupon(coupons: any) {
+    if (Array.isArray(coupons)) return coupons[0] || null;
+    return coupons || null;
+}
+
 export async function POST(request: Request) {
     try {
         const { code_or_id } = await request.json();
@@ -12,8 +17,6 @@ export async function POST(request: Request) {
 
         const client = createPostgrestClient();
 
-        // Try to find coupon issue by ID (or Code if we implemented code)
-        // For MVP, we treat input as ID.
         const { data: issue, error } = await client
             .from('coupon_issues')
             .select(`
@@ -31,8 +34,7 @@ export async function POST(request: Request) {
             .single();
 
         if (error || !issue) {
-            // Try searching by 'code' column if implemented
-            const { data: issueByCode, error: error2 } = await client
+            const { data: issueByCode } = await client
                 .from('coupon_issues')
                 .select(`
             id,
@@ -49,28 +51,30 @@ export async function POST(request: Request) {
                 .single();
 
             if (issueByCode) {
+                const coupon = extractCoupon(issueByCode.coupons);
                 return NextResponse.json({
                     id: issueByCode.id,
                     status: issueByCode.status,
-                    title: issueByCode.coupons?.title,
-                    description: issueByCode.coupons?.description,
-                    discount_type: issueByCode.coupons?.discount_type,
-                    discount_value: issueByCode.coupons?.discount_value,
-                    valid_until: issueByCode.coupons?.valid_until
+                    title: coupon?.title,
+                    description: coupon?.description,
+                    discount_type: coupon?.discount_type,
+                    discount_value: coupon?.discount_value,
+                    valid_until: coupon?.valid_until
                 });
             }
 
             return NextResponse.json({ error: 'Coupon not found' }, { status: 404 });
         }
 
+        const coupon = extractCoupon(issue.coupons);
         return NextResponse.json({
             id: issue.id,
             status: issue.status,
-            title: issue.coupons?.title,
-            description: issue.coupons?.description,
-            discount_type: issue.coupons?.discount_type,
-            discount_value: issue.coupons?.discount_value,
-            valid_until: issue.coupons?.valid_until
+            title: coupon?.title,
+            description: coupon?.description,
+            discount_type: coupon?.discount_type,
+            discount_value: coupon?.discount_value,
+            valid_until: coupon?.valid_until
         });
 
     } catch (error: any) {
