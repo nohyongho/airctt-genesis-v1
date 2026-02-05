@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   async headers() {
     return [
@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: process.env.ALLOWED_ORIGINS || "https://airctt.com,https://petctt.com",
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -27,11 +27,23 @@ const nextConfig: NextConfig = {
           },
           {
             key: "X-Frame-Options",
-            value: "ALLOWALL",
+            value: "SAMEORIGIN",
           },
           {
             key: "Content-Security-Policy",
-            value: "frame-ancestors 'self' *",
+            value: "frame-ancestors 'self' https://petctt.com https://airctt.com",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
         ],
       },
@@ -39,18 +51,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      {
-        hostname: "images.pexels.com",
-      },
-      {
-        hostname: "images.unsplash.com",
-      },
-      {
-        hostname: "chat2db-cdn.oss-us-west-1.aliyuncs.com",
-      },
-      {
-        hostname: "cdn.chat2db-ai.com",
-      }
+      { hostname: "images.pexels.com" },
+      { hostname: "images.unsplash.com" },
+      { hostname: "chat2db-cdn.oss-us-west-1.aliyuncs.com" },
+      { hostname: "cdn.chat2db-ai.com" },
     ],
   },
 };

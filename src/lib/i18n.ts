@@ -6,7 +6,7 @@ export const messages = {
     common: {
       home: '홈',
       wallet: '지갑',
-      ar: 'AR 피팅',
+      game: '게임',
       stores: '매장',
       profile: '마이페이지',
       login: '로그인',
@@ -26,7 +26,7 @@ export const messages = {
     },
     home: {
       title: 'AIRCTT',
-      subtitle: 'AR 쿠폰 플랫폼',
+      subtitle: '쿠폰톡톡',
       todayRecommendation: '오늘의 추천',
       nearbyStores: '근처 매장',
       goToWallet: '내 지갑 바로가기',
@@ -191,7 +191,7 @@ export const messages = {
     common: {
       home: 'Home',
       wallet: 'Wallet',
-      ar: 'AR Fitting',
+      game: 'Game',
       stores: 'Stores',
       profile: 'Profile',
       login: 'Login',
@@ -211,7 +211,7 @@ export const messages = {
     },
     home: {
       title: 'AIRCTT',
-      subtitle: 'AR Coupon Platform',
+      subtitle: 'CouponTalkTalk',
       todayRecommendation: "Today's Picks",
       nearbyStores: 'Nearby Stores',
       goToWallet: 'Go to My Wallet',

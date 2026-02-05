@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Wallet, Camera, Store, User } from 'lucide-react';
+import { Home, Wallet, Gamepad2, Store, User } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 
 export default function BottomTabNav() {
@@ -13,7 +13,7 @@ export default function BottomTabNav() {
   const tabs = [
     { href: '/consumer', icon: Home, label: t('common.home') },
     { href: '/consumer/wallet', icon: Wallet, label: t('common.wallet') },
-    { href: '/consumer/ar', icon: Camera, label: t('common.ar') },
+    { href: '/consumer/game', icon: Gamepad2, label: t('common.game') || '게임' },
     { href: '/consumer/stores', icon: Store, label: t('common.stores') },
     { href: '/consumer/profile', icon: User, label: t('common.profile') },
   ];
