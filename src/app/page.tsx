@@ -129,10 +129,10 @@ export default function LandingPage() {
   ];
 
   const stats = [
-    { value: '50K+', label: '활성 사용자' },
-    { value: '1,200+', label: '제휴 매장' },
-    { value: '100K+', label: '발급 쿠폰' },
-    { value: '99.9%', label: '서비스 안정성' },
+    { value: '270만+', label: '가맹점' },
+    { value: '500만+', label: '쿠폰 발행' },
+    { value: '98%', label: '만족도' },
+    { value: '24/7', label: '서비스 운영' },
   ];
 
   if (!mounted) {
@@ -172,8 +172,8 @@ export default function LandingPage() {
               />
             </div>
             <div>
-              <h1 className="font-bold text-base sm:text-lg bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">AIRCTT</h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">AR Coupon Platform</p>
+              <h1 className="font-bold text-base sm:text-lg bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">PETCTT</h1>
+              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">쿠폰톡톡 · 구름장터</p>
             </div>
           </motion.div>
 
@@ -202,20 +202,20 @@ export default function LandingPage() {
 
 
             <Badge className="mb-4 sm:mb-6 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 text-primary border-purple-500/20 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm">
-              <MapPin className="w-3 h-3 mr-1" />
-              위치기반 AR 플랫폼
+              <Zap className="w-3 h-3 mr-1" />
+              2026 NEW 3D 터치 쿠폰 게임
             </Badge>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">쿠폰톡톡</span>
+              <span className="bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">터치 한 번으로</span>
               <br />
-              <span className="text-foreground">누구나 쉽게, 누구나 행복하게</span>
+              <span className="text-foreground">쿠폰이 쏟아진다</span>
             </h1>
 
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
-              게임으로 쿠폰을 얻고, 구름장터에서 거래하는
+              3D 터치 쿠폰 게임으로 쿠폰을 획득하고
               <br className="hidden sm:block" />
-              차세대 디지털 쿠폰 플랫폼
+              구름장터에서 스마트하게 사용하세요 🚀
             </p>
 
             {/* Patent Badge */}
@@ -236,19 +236,26 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Real-time Event Button (Restored) */}
+          {/* Real-time Event Button - Link to 3D Game */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="flex justify-center mb-8"
+            className="flex justify-center gap-3 mb-8"
           >
             <Button
-              className="rounded-full bg-black/80 backdrop-blur-xl border-2 border-[#FFD600] text-[#FFD600] px-10 py-6 text-2xl font-black tracking-wider shadow-[0_0_30px_rgba(255,214,0,0.4)] hover:shadow-[0_0_50px_rgba(255,214,0,0.6)] hover:bg-black transition-all animate-pulse"
-              onClick={() => router.push('/consumer')}
+              className="rounded-full bg-black/80 backdrop-blur-xl border-2 border-[#FFD600] text-[#FFD600] px-8 py-6 text-xl font-black tracking-wider shadow-[0_0_30px_rgba(255,214,0,0.4)] hover:shadow-[0_0_50px_rgba(255,214,0,0.6)] hover:bg-black transition-all animate-pulse"
+              onClick={() => router.push('/consumer/game')}
             >
-              <Zap className="w-6 h-6 mr-2 fill-[#FFD600]" />
-              실시간 이벤트
+              <Zap className="w-5 h-5 mr-2 fill-[#FFD600]" />
+              🎮 3D 쿠폰 게임
+            </Button>
+            <Button
+              variant="outline"
+              className="rounded-full px-6 py-6 text-lg font-bold border-2"
+              onClick={() => router.push('/consumer/wallet')}
+            >
+              💰 내 지갑
             </Button>
           </motion.div>
 
@@ -353,10 +360,10 @@ export default function LandingPage() {
             className="text-center mb-8 sm:mb-12"
           >
             <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
-              <span className="bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">핵심 기능</span>
+              <span className="bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">PETCTT 핵심 기능</span>
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground">
-              AIRCTT만의 특별한 기술을 경험해보세요
+              쿠폰톡톡만의 특별한 기술을 경험해보세요
             </p>
           </motion.div>
 
@@ -473,7 +480,7 @@ export default function LandingPage() {
                     지금 바로 시작하세요
                   </h2>
                   <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md mx-auto">
-                    AIRCTT와 함께 쿠폰의 새로운 세계를 경험하세요.
+                    PETCTT와 함께 쿠폰의 새로운 세계를 경험하세요.
                     무료로 시작할 수 있습니다.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
@@ -500,20 +507,20 @@ export default function LandingPage() {
             </Card>
           </motion.div>
         </div>
-      </section>
+      </section >
 
       {/* Footer */}
-      <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t safe-area-bottom">
+      < footer className="py-6 sm:py-8 px-3 sm:px-4 border-t safe-area-bottom" >
         <div className="container mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 flex items-center justify-center">
                 <Radio className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
               </div>
-              <span className="font-semibold text-sm sm:text-base">AIRCTT</span>
+              <span className="font-semibold text-sm sm:text-base">PETCTT</span>
             </div>
             <p className="text-[10px] sm:text-sm text-muted-foreground text-center">
-              © 2025 AIRCTT (주)발로레. All rights reserved. | airctt.com
+              © 2026 PETCTT (주)쿠폰톡톡. All rights reserved. | petctt.com
             </p>
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="ghost" size="sm" className="text-muted-foreground text-[10px] sm:text-sm h-8">
@@ -525,7 +532,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </footer>
-    </div>
+      </footer >
+    </div >
   );
 }
