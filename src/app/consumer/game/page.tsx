@@ -1,26 +1,23 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import CouponGameWindow from '@/components/consumer/CouponGameWindow';
+import CouponGame3D from '@/components/consumer/CouponGame3D';
 import { toast } from 'sonner';
 
 export default function GamePage() {
     const router = useRouter();
 
     const handleCouponAcquired = (amount: number, name: string) => {
-        toast.success(`축하합니다! ${name}을(를) 획득했습니다!`, {
-            description: '지갑에서 확인하세요.',
-            duration: 3000,
-        });
+        // Toast is now subtle since the game has its own UI
     };
 
     const handleClose = () => {
-        router.back();
+        router.push('/consumer');
     };
 
     return (
-        <div className="w-full h-screen bg-black">
-            <CouponGameWindow
+        <div className="w-full h-screen">
+            <CouponGame3D
                 onCouponAcquired={handleCouponAcquired}
                 onClose={handleClose}
                 lang="ko"
