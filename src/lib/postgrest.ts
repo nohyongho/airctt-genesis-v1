@@ -10,8 +10,15 @@ const POSTGREST_URL = SUPABASE_URL.endsWith("/rest/v1")
   : `${SUPABASE_URL}/rest/v1`;
 
 export function createPostgrestClient(token?: string) {
+  const authToken = token || SUPABASE_ANON_KEY;
+
   const client = new PostgrestClient(POSTGREST_URL, {
     schema: POSTGREST_SCHEMA,
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": `Bearer ${authToken}`,
+    },
     fetch: (...args) => {
       let [url, options] = args;
 
@@ -26,26 +33,22 @@ export function createPostgrestClient(token?: string) {
         }
       }
 
+      // ★ fetch 호출부에서 apikey + Authorization 강제 주입
+      const headers = new Headers((options as RequestInit)?.headers);
+      if (SUPABASE_ANON_KEY) {
+        headers.set("apikey", SUPABASE_ANON_KEY);
+      }
+      if (authToken) {
+        headers.set("Authorization", `Bearer ${authToken}`);
+      }
+      headers.set("Content-Type", "application/json");
+
       return fetch(url, {
         ...options,
+        headers,
       } as RequestInit);
     },
   });
 
-  client.headers.set("Content-Type", "application/json");
-
-  // ★ Supabase 표준 헤더: "apikey" (Postgrest-API-Key X)
-  if (SUPABASE_ANON_KEY) {
-    client.headers.set("apikey", SUPABASE_ANON_KEY);
-  }
-
-  // Authorization: Bearer (토큰 있으면 사용자 토큰, 없으면 anon key)
-  if (token) {
-    client.headers.set("Authorization", `Bearer ${token}`);
-  } else if (SUPABASE_ANON_KEY) {
-    client.headers.set("Authorization", `Bearer ${SUPABASE_ANON_KEY}`);
-  }
-
   return client;
 }
-
