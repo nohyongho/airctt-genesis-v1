@@ -31,7 +31,8 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             coupon_issue_id: data.id,
-            status: data.status,
+            is_used: data.is_used,
+            status: data.is_used ? 'used' : 'issued',
         });
 
     } catch (error: any) {
