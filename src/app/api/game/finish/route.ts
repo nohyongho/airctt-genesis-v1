@@ -75,31 +75,63 @@ export async function POST(request: Request) {
                     }
                 });
 
-                // 2. Insert into coupon_issues (The Critical Fix)
-                const { data: issueData, error: issueError } = await client
+                // 2. 중복 체크 후 Insert (똑똑한 발급!)
+                let issueId = null;
+                let alreadyOwned = false;
+
+                // 이미 이 쿠폰을 보유하고 있는지 확인
+                const { data: existingIssue } = await client
                     .from('coupon_issues')
-                    .insert({
-                        coupon_id: coupon.id,
-                        user_id: userId,
-                        issued_from: 'event',
-                        issued_at: new Date().toISOString(),
-                        is_used: false
-                    })
                     .select('id')
-                    .single();
+                    .eq('user_id', userId)
+                    .eq('coupon_id', coupon.id)
+                    .eq('is_used', false)
+                    .maybeSingle();
 
-                if (issueError) {
-                    console.error('Error issuing coupon:', issueError);
-                    // Explicitly return success: false as requested
-                    return NextResponse.json({
-                        success: false,
-                        error: issueError.message,
-                        details: 'DB Insert Failed. Check RLS policies.'
-                    }, { status: 500 });
+                if (existingIssue) {
+                    // 이미 보유 → 기존 issue 반환
+                    issueId = existingIssue.id;
+                    alreadyOwned = true;
+                    console.log(`[Game API] Already owned: ${issueId}`);
+                } else {
+                    // 신규 발급
+                    const { data: issueData, error: issueError } = await client
+                        .from('coupon_issues')
+                        .insert({
+                            coupon_id: coupon.id,
+                            user_id: userId,
+                            issued_from: 'event',
+                            issued_at: new Date().toISOString(),
+                            is_used: false
+                        })
+                        .select('id')
+                        .single();
+
+                    if (issueError) {
+                        // 유니크 인덱스 충돌 (race condition)
+                        if (issueError.code === '23505') {
+                            const { data: raceIssue } = await client
+                                .from('coupon_issues')
+                                .select('id')
+                                .eq('user_id', userId)
+                                .eq('coupon_id', coupon.id)
+                                .eq('is_used', false)
+                                .maybeSingle();
+                            issueId = raceIssue?.id || null;
+                            alreadyOwned = true;
+                        } else {
+                            console.error('Error issuing coupon:', issueError);
+                            return NextResponse.json({
+                                success: false,
+                                error: issueError.message,
+                                details: 'DB Insert Failed. Check RLS policies.'
+                            }, { status: 500 });
+                        }
+                    } else {
+                        issueId = issueData.id;
+                        console.log(`[Game API] Coupon Issued: ${issueId} for User ${userId}`);
+                    }
                 }
-
-                issueId = issueData.id;
-                console.log(`[Game API] Coupon Issued: ${issueId} for User ${userId}`);
             } else {
                 console.warn('[Game API] No active coupon found to issue.');
                 // If no coupon found, we might want to return false or just success with no issue_id

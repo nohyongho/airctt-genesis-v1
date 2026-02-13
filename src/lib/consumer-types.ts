@@ -24,6 +24,9 @@ export interface Coupon {
   storeSlug?: string;
   discountType?: 'percent' | 'amount' | 'free_item';
   couponIssueId?: string;
+  // ★ 영상 쿠폰
+  videoUrl?: string;
+  videoAutoplay?: boolean;
   issuerInfo?: {
     name: string;
     brand: string;

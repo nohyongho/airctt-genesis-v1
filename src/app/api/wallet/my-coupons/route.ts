@@ -59,6 +59,8 @@ export async function GET(request: Request) {
           discount_type,
           valid_to,
           store_id,
+          video_url,
+          video_autoplay_wallet,
           merchants ( name ),
           stores ( id, name, slug )
         )
@@ -82,13 +84,24 @@ export async function GET(request: Request) {
             imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200',
             discountRate: issue.coupons.discount_value,
             discountType: issue.coupons.discount_type,
-            // ★ 순환구조: 매장 연결
             storeId: issue.coupons.store_id,
             storeName: issue.coupons.stores?.name,
             storeSlug: issue.coupons.stores?.slug,
+            // ★ 영상 쿠폰
+            videoUrl: issue.coupons.video_url,
+            videoAutoplay: issue.coupons.video_autoplay_wallet,
         }));
 
-        return NextResponse.json(formatted);
+        // ★ 중복 제거: 동일 쿠폰(title+brand) 1장만 표시
+        const seen = new Set<string>();
+        const deduplicated = formatted.filter((c: any) => {
+            const key = `${c.title}|${c.brand}|${c.status}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+
+        return NextResponse.json(deduplicated);
 
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
