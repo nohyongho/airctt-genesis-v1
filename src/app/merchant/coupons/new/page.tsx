@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Ticket, Calendar, Ban, CheckCircle2, Copy } from 'lucide-react';
+import { Ticket, Calendar, Ban, CheckCircle2, Copy, MapPin, Clock, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,17 +21,31 @@ export default function CouponCreatePage() {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        discountType: 'PERCENT', // PERCENT, FIXED_AMOUNT, FREE_ITEM
+        discountType: 'PERCENT',
         discountValue: '',
         totalQuantity: 100,
-        validDays: 30,
         minOrderAmount: 0,
-        autoTargeting: true, // 반경 내 자동 노출 여부
-        imageUrl: ''
+        imageUrl: '',
+        // ★ 유효기간 (시작~종료)
+        validFrom: new Date().toISOString().split('T')[0],
+        validTo: '',
+        // ★ 반경 설정 (미터 단위, 안전핀2 반영)
+        radiusType: 'store' as 'store' | 'custom' | 'nationwide',
+        radiusM: 5000,
+        // ★ 배포 시간
+        distributionStartTime: '09:00',
+        distributionEndTime: '22:00',
+        perUserLimit: 1,
     });
 
+    // 반경 표시 포맷
+    const formatRadius = (m: number) => {
+        if (m >= 1000000) return `${(m / 1000).toLocaleString()}km`;
+        if (m >= 1000) return `${(m / 1000).toFixed(1)}km`;
+        return `${m}m`;
+    };
+
     const handleCreate = async () => {
-        // Basic Validation
         if (!formData.title || !formData.discountValue) {
             toast.error('쿠폰 이름과 할인 혜택을 입력해주세요.');
             return;
@@ -40,14 +54,33 @@ export default function CouponCreatePage() {
         setLoading(true);
 
         try {
-            // Mock API Call (Simulating DB Insert)
-            // In real step, we POST to /api/merchant/coupons
-            await new Promise(r => setTimeout(r, 1000));
+            // ★ 실제 API 호출 (CUT-2 해결!)
+            const res = await fetch('/api/merchant/coupons', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    merchant_id: localStorage.getItem('airctt_merchant_id') || '',
+                    store_id: localStorage.getItem('airctt_store_id') || '',
+                    title: formData.title,
+                    description: formData.description,
+                    discount_type: formData.discountType.toLowerCase(),
+                    discount_value: parseFloat(formData.discountValue),
+                    total_issuable: formData.totalQuantity,
+                    valid_from: formData.validFrom || null,
+                    valid_to: formData.validTo || null,
+                    radius_km: formData.radiusType === 'nationwide' ? 20001 : formData.radiusM / 1000,
+                    min_order_amount: formData.minOrderAmount,
+                    per_user_limit: formData.perUserLimit,
+                }),
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || '발행 실패');
 
             toast.success('쿠폰이 성공적으로 발행되었습니다! 🎟️');
-            router.push('/merchant/dashboard'); // Back to dashboard
-        } catch (e) {
-            toast.error('발행 실패: 다시 시도해주세요.');
+            router.push('/merchant/coupons');
+        } catch (e: any) {
+            toast.error(`발행 실패: ${e.message || '다시 시도해주세요.'}`);
         } finally {
             setLoading(false);
         }
@@ -134,36 +167,105 @@ export default function CouponCreatePage() {
                                     <Input
                                         type="number"
                                         value={formData.totalQuantity}
-                                        onChange={(e) => setFormData({ ...formData, totalQuantity: parseInt(e.target.value) })}
+                                        onChange={(e) => setFormData({ ...formData, totalQuantity: parseInt(e.target.value) || 100 })}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>유효 기간 (발급일로부터)</Label>
-                                    <Select
-                                        value={formData.validDays.toString()}
-                                        onValueChange={(v) => setFormData({ ...formData, validDays: parseInt(v) })}
-                                    >
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="7">7일</SelectItem>
-                                            <SelectItem value="14">14일</SelectItem>
-                                            <SelectItem value="30">30일</SelectItem>
-                                            <SelectItem value="90">90일</SelectItem>
-                                            <SelectItem value="365">1년</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label>1인당 수량 제한</Label>
+                                    <Input
+                                        type="number"
+                                        min={1} max={10}
+                                        value={formData.perUserLimit}
+                                        onChange={(e) => setFormData({ ...formData, perUserLimit: parseInt(e.target.value) || 1 })}
+                                    />
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label>자동 노출 (반경 500m)</Label>
-                                    <p className="text-xs text-slate-500">게임 및 매장 목록에서 고객에게 쿠폰을 노출합니다.</p>
+                            {/* ★ 유효기간 (시작일/종료일 캘린더) */}
+                            <div className="space-y-3 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Calendar className="w-4 h-4 text-indigo-500" />
+                                    <Label className="text-indigo-700 font-semibold">유효기간</Label>
                                 </div>
-                                <Switch
-                                    checked={formData.autoTargeting}
-                                    onCheckedChange={(c) => setFormData({ ...formData, autoTargeting: c })}
-                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <Label className="text-xs text-slate-500">시작일</Label>
+                                        <Input type="date" value={formData.validFrom}
+                                            onChange={(e) => setFormData({ ...formData, validFrom: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs text-slate-500">종료일</Label>
+                                        <Input type="date" value={formData.validTo}
+                                            onChange={(e) => setFormData({ ...formData, validTo: e.target.value })} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ★ 반경 설정 (50m ~ 20,000km) */}
+                            <div className="space-y-3 p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <MapPin className="w-4 h-4 text-emerald-500" />
+                                    <Label className="text-emerald-700 font-semibold">배포 반경</Label>
+                                </div>
+                                <Select
+                                    value={formData.radiusType}
+                                    onValueChange={(v: any) => setFormData({ ...formData, radiusType: v })}
+                                >
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="store">매장 기준 반경</SelectItem>
+                                        <SelectItem value="custom">위치 직접 지정</SelectItem>
+                                        <SelectItem value="nationwide">전국 배포</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                {formData.radiusType !== 'nationwide' && (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="font-medium text-emerald-700">
+                                                반경: {formatRadius(formData.radiusM)}
+                                            </span>
+                                            <span className="text-slate-400 text-xs">50m ~ 20,000km</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min={50} max={20000000}
+                                            step={formData.radiusM < 1000 ? 50 : formData.radiusM < 10000 ? 500 : formData.radiusM < 100000 ? 5000 : 50000}
+                                            value={formData.radiusM}
+                                            onChange={(e) => setFormData({ ...formData, radiusM: parseInt(e.target.value) })}
+                                            className="w-full accent-emerald-500"
+                                        />
+                                        <div className="flex justify-between text-[10px] text-slate-400">
+                                            <span>50m</span><span>500m</span><span>5km</span><span>50km</span><span>500km</span><span>20,000km</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {formData.radiusType === 'nationwide' && (
+                                    <div className="flex items-center gap-2 p-3 bg-white rounded-lg">
+                                        <Globe className="w-5 h-5 text-blue-500" />
+                                        <span className="text-sm text-slate-600">전국 모든 고객에게 노출됩니다</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ★ 배포 시간 */}
+                            <div className="space-y-3 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Clock className="w-4 h-4 text-amber-500" />
+                                    <Label className="text-amber-700 font-semibold">배포 시간</Label>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <Label className="text-xs text-slate-500">시작</Label>
+                                        <Input type="time" value={formData.distributionStartTime}
+                                            onChange={(e) => setFormData({ ...formData, distributionStartTime: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs text-slate-500">종료</Label>
+                                        <Input type="time" value={formData.distributionEndTime}
+                                            onChange={(e) => setFormData({ ...formData, distributionEndTime: e.target.value })} />
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -203,7 +305,7 @@ export default function CouponCreatePage() {
                                         <span className="text-sm font-bold text-slate-500 ml-1">OFF</span>
                                     </div>
                                     <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">
-                                        D-{formData.validDays}
+                                        {formData.validTo ? `~${formData.validTo}` : '무기한'}
                                     </div>
                                 </div>
                                 <p className="text-xs text-slate-500 leading-relaxed">
