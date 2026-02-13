@@ -1,8 +1,13 @@
 import { PostgrestClient } from "@supabase/postgrest-js";
 
-const POSTGREST_URL = process.env.POSTGREST_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const SUPABASE_URL = process.env.POSTGREST_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const POSTGREST_SCHEMA = process.env.POSTGREST_SCHEMA || "public";
-const POSTGREST_API_KEY = process.env.POSTGREST_API_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const SUPABASE_ANON_KEY = process.env.POSTGREST_API_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+// Supabase REST API 엔드포인트: https://xxx.supabase.co/rest/v1
+const POSTGREST_URL = SUPABASE_URL.endsWith("/rest/v1")
+  ? SUPABASE_URL
+  : `${SUPABASE_URL}/rest/v1`;
 
 export function createPostgrestClient(token?: string) {
   const client = new PostgrestClient(POSTGREST_URL, {
@@ -29,13 +34,18 @@ export function createPostgrestClient(token?: string) {
 
   client.headers.set("Content-Type", "application/json");
 
-  if (POSTGREST_API_KEY) {
-    client.headers.set("Postgrest-API-Key", POSTGREST_API_KEY);
+  // ★ Supabase 표준 헤더: "apikey" (Postgrest-API-Key X)
+  if (SUPABASE_ANON_KEY) {
+    client.headers.set("apikey", SUPABASE_ANON_KEY);
   }
 
+  // Authorization: Bearer (토큰 있으면 사용자 토큰, 없으면 anon key)
   if (token) {
     client.headers.set("Authorization", `Bearer ${token}`);
+  } else if (SUPABASE_ANON_KEY) {
+    client.headers.set("Authorization", `Bearer ${SUPABASE_ANON_KEY}`);
   }
 
   return client;
 }
+
