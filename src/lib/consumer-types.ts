@@ -18,6 +18,12 @@ export interface Coupon {
   expiresAt: string;
   imageUrl?: string;
   discountRate?: number;
+  // ★ 순환구조: 매장 연결
+  storeId?: string;
+  storeName?: string;
+  storeSlug?: string;
+  discountType?: 'percent' | 'amount' | 'free_item';
+  couponIssueId?: string;
   issuerInfo?: {
     name: string;
     brand: string;

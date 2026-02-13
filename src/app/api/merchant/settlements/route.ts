@@ -134,7 +134,26 @@ export async function POST(request: NextRequest) {
     const orderCount = payments?.length || 0;
     const feeRate = 3.5; // 기본 수수료율
     const feeAmount = Math.round(grossAmount * feeRate / 100);
-    const netAmount = grossAmount - feeAmount;
+
+    // ★ CUT-6: 쿠폰 사용 비용 집계 (안전핀3: coupon_issues.is_used 기준, 1회만)
+    // 해당 기간 내 이 머천트 매장에서 사용된 쿠폰 수 집계
+    const { data: stores } = await postgrest
+      .from('stores').select('id').eq('merchant_id', merchant_id);
+    const storeIds = stores?.map((s: any) => s.id) || [];
+
+    let couponCost = 0;
+    if (storeIds.length > 0) {
+      const { count: couponCount } = await postgrest
+        .from('coupon_issues')
+        .select('*', { count: 'exact', head: true })
+        .in('used_store_id', storeIds)
+        .eq('is_used', true)
+        .gte('used_at', start.toISOString())
+        .lte('used_at', end.toISOString());
+      couponCost = (couponCount || 0) * 50;  // 장당 50원
+    }
+
+    const netAmount = grossAmount - feeAmount - couponCost;
 
     // 환불 내역 조회
     const { data: refunds } = await postgrest

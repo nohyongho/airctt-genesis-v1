@@ -92,7 +92,7 @@ export default function MarketplaceMain() {
           <h3 className="font-bold text-lg text-slate-800 mb-4">🔥 지금 뜨는 핫플레이스</h3>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-4 bg-white p-3 rounded-xl border border-slate-100 shadow-sm" onClick={() => router.push(`/consumer/market/store/${i}`)}>
+              <div key={i} className="flex gap-4 bg-white p-3 rounded-xl border border-slate-100 shadow-sm" onClick={() => router.push(`/consumer/stores/${i}`)}>
                 <div className="w-24 h-24 bg-slate-200 rounded-lg flex-shrink-0" />
                 <div className="flex-1 flex flex-col justify-between py-1">
                   <div>

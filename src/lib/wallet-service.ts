@@ -60,16 +60,14 @@ export const walletService = {
     }
   },
 
-  useCoupon: async (couponId: string): Promise<boolean> => {
+  useCoupon: async (couponIssueId: string, storeId?: string): Promise<boolean> => {
     try {
-      // Use the API we made earlier
       const res = await fetch('/api/coupons/use', {
         method: 'POST',
         headers: walletService.getHeaders() as any,
-        // Mock Store ID for now, or pass it if available
         body: JSON.stringify({
-          coupon_issue_id: couponId,
-          store_id: '00000000-0000-0000-0000-000000000000' // Placeholder Mock Store
+          coupon_issue_id: couponIssueId,
+          store_id: storeId || '00000000-0000-0000-0000-000000000000',
         }),
       });
       return res.ok;

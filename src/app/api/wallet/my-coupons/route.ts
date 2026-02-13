@@ -56,11 +56,14 @@ export async function GET(request: Request) {
           title,
           description,
           discount_value,
+          discount_type,
           valid_to,
-          merchants ( name )
+          store_id,
+          merchants ( name ),
+          stores ( id, name, slug )
         )
       `)
-            .or(`user_id.eq.${consumerKey},user_id.eq.00000000-0000-0000-0000-000000000000`) // Allow seeing both MyID and DefaultID coupons
+            .or(`user_id.eq.${consumerKey},user_id.eq.00000000-0000-0000-0000-000000000000`)
             .order('issued_at', { ascending: false });
 
         if (error) {
@@ -70,13 +73,19 @@ export async function GET(request: Request) {
 
         const formatted = data.map((issue: any) => ({
             id: issue.id,
+            couponIssueId: issue.id,
             title: issue.coupons.title,
             description: issue.coupons.description,
             brand: issue.coupons.merchants?.name || 'Unknown Brand',
-            status: !issue.is_used ? 'available' : 'used', // Map boolean exists
+            status: !issue.is_used ? 'available' : 'used',
             expiresAt: issue.coupons.valid_to,
             imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=200',
             discountRate: issue.coupons.discount_value,
+            discountType: issue.coupons.discount_type,
+            // ★ 순환구조: 매장 연결
+            storeId: issue.coupons.store_id,
+            storeName: issue.coupons.stores?.name,
+            storeSlug: issue.coupons.stores?.slug,
         }));
 
         return NextResponse.json(formatted);

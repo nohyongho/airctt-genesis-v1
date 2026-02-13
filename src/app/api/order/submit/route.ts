@@ -100,6 +100,20 @@ export async function POST(request: NextRequest) {
 
     const finalAmount = totalAmount - discountAmount;
 
+    // ★ CUT-5: 쿠폰 자동 사용처리 (순환구조 핵심!)
+    // 안전핀3: coupon_issues 기준 1회만 처리 (is_used=false 조건)
+    if (coupon_issue_id && discountAmount > 0) {
+      await postgrest
+        .from('coupon_issues')
+        .update({
+          is_used: true,
+          used_at: new Date().toISOString(),
+          used_store_id: session.store_id,
+        })
+        .eq('id', coupon_issue_id)
+        .eq('is_used', false);  // 중복 차감 방지: 이미 사용된 쿠폰은 무시
+    }
+
     // 주문 번호 생성
     const orderNumber = await getNextOrderNumber(postgrest, session.store_id);
 

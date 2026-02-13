@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Coins, Ticket, CreditCard, MapPin, Navigation, Filter, Search, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +25,7 @@ interface CouponWithStore extends Coupon {
 
 export default function WalletPage() {
   const { t, language } = useI18n();
+  const router = useRouter();
   const [coupons, setCoupons] = useState<CouponWithStore[]>([]);
   const [pointBalance, setPointBalance] = useState(0);
   const [pointHistory, setPointHistory] = useState<PointHistory[]>([]);
@@ -287,7 +289,8 @@ export default function WalletPage() {
                     <CouponCard
                       coupon={coupon}
                       distance={coupon.distance}
-                      storeName={coupon.store?.name}
+                      storeName={coupon.store?.name || coupon.storeName}
+                      onClickStore={(storeId) => router.push(`/consumer/stores/${storeId}`)}
                     />
                   </div>
 

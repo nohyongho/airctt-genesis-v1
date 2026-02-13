@@ -14,6 +14,7 @@ interface CouponCardProps {
   storeName?: string;
   storeLocation?: { lat: number; lng: number };
   userLocation?: { lat: number; lng: number };
+  onClickStore?: (storeId: string) => void;
 }
 
 export default function CouponCard({
@@ -21,7 +22,8 @@ export default function CouponCard({
   distance,
   storeName,
   storeLocation,
-  userLocation
+  userLocation,
+  onClickStore
 }: CouponCardProps) {
   const { language } = useI18n();
 
@@ -76,11 +78,16 @@ export default function CouponCard({
   }
 
   return (
-    <Card className={`overflow-hidden transition-all relative ${coupon.status !== 'available' ? 'opacity-60' : ''
+    <Card className={`overflow-hidden transition-all relative cursor-pointer hover:shadow-md ${coupon.status !== 'available' ? 'opacity-60' : ''
       }`}
       style={{
         boxShadow: showShine ? '0 0 15px rgba(255, 215, 0, 0.3)' : undefined,
         border: tier > 0 && coupon.status === 'available' ? `1px solid ${borderColor}` : undefined
+      }}
+      onClick={() => {
+        if (coupon.storeId && coupon.status === 'available' && onClickStore) {
+          onClickStore(coupon.storeId);
+        }
       }}
     >
       {/* Shine Effect for 100% */}
@@ -120,6 +127,9 @@ export default function CouponCard({
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm sm:text-base truncate">{coupon.title}</h3>
                   <p className="text-xs text-muted-foreground">{coupon.brand}</p>
+                  {(coupon.storeName || storeName) && (
+                    <p className="text-xs text-blue-500 font-medium">{'\uD83D\uDCCD'} {coupon.storeName || storeName}</p>
+                  )}
                 </div>
                 <Badge className={`${badgeColor} text-white text-[10px] sm:text-xs flex-shrink-0`}>
                   {statusLabels[coupon.status]}

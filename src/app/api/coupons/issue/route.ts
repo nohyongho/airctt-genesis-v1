@@ -5,9 +5,9 @@ import { createPostgrestClient } from '@/lib/postgrest';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { consumer_id, coupon_id, reason } = body;
+        const { user_id, coupon_id, reason } = body;
 
-        if (!consumer_id || !coupon_id) {
+        if (!user_id || !coupon_id) {
             return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
         }
 
@@ -16,13 +16,13 @@ export async function POST(request: Request) {
         const { data, error } = await client
             .from('coupon_issues')
             .insert({
-                consumer_id,
+                user_id,
                 coupon_id,
-                issued_reason: reason || 'MANUAL',
-                status: 'ISSUED',
+                issued_from: reason || 'manual',
+                is_used: false,
                 issued_at: new Date().toISOString(),
             })
-            .select('id, status')
+            .select('id, is_used')
             .single();
 
         if (error) {
