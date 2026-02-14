@@ -12,9 +12,9 @@ export default function MarketplaceMain() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
       {/* Header - Transparent Sticky */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b dark:border-slate-800">
         <div className="flex items-center justify-between px-4 h-16 max-w-md mx-auto">
           <div className="flex items-center gap-1">
             <span className="font-extrabold text-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -47,19 +47,21 @@ export default function MarketplaceMain() {
       {/* Main Content */}
       <main className="max-w-md mx-auto p-4 space-y-8">
 
-        {/* Hero Banner (Event) */}
+        {/* Hero Banner (Valentine's Day Event) */}
         <section
           className="relative h-48 rounded-2xl overflow-hidden shadow-lg cursor-pointer transform transition hover:scale-[1.02]"
           onClick={() => router.push('/consumer/game')}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600" />
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-rose-500 to-red-500" />
           <div className="absolute inset-0 flex flex-col justify-center p-6 text-white">
-            <span className="bg-white/20 w-fit px-2 py-1 rounded text-xs font-bold mb-2 backdrop-blur-sm">Real-time Event</span>
-            <h2 className="text-2xl font-bold leading-tight mb-1">지금 접속하면<br />50% 쿠폰 잭팟! 🎫</h2>
-            <p className="text-sm opacity-90">쿠폰 게임에서 행운을 잡으세요!</p>
+            <span className="bg-white/20 w-fit px-2 py-1 rounded text-xs font-bold mb-2 backdrop-blur-sm">💝 Valentine 2026</span>
+            <h2 className="text-2xl font-bold leading-tight mb-1">발렌타인 특별 이벤트<br />달콤한 쿠폰 7종! 🍫💖</h2>
+            <p className="text-sm opacity-90">아미와 클이 준비한 사랑 가득 선물</p>
           </div>
-          {/* 3D or Image placeholder */}
-          <div className="absolute right-[-20px] bottom-[-20px] w-32 h-32 bg-yellow-300 rounded-full blur-2xl opacity-50" />
+          {/* Valentine Hearts Animation */}
+          <div className="absolute right-[-20px] bottom-[-20px] w-32 h-32 bg-pink-300 rounded-full blur-2xl opacity-50" />
+          <div className="absolute top-2 right-4 text-4xl animate-pulse">💕</div>
+          <div className="absolute bottom-4 right-12 text-2xl animate-bounce">🍫</div>
         </section>
 
         {/* Categories Grid */}
