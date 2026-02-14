@@ -66,6 +66,16 @@ function getStep(m: number): number {
 }
 
 // ─────────────────────────────────────────────
+// 원 가장자리 좌표 계산 (동쪽 방향)
+// ─────────────────────────────────────────────
+function getEdgePoint(lat: number, lng: number, radiusM: number): [number, number] {
+  // 동쪽(90°) 방향으로 반경만큼 이동한 좌표
+  const R = 6371000; // 지구 반지름 (m)
+  const dLng = (radiusM / (R * Math.cos((lat * Math.PI) / 180))) * (180 / Math.PI);
+  return [lat, lng + dLng];
+}
+
+// ─────────────────────────────────────────────
 // Props
 // ─────────────────────────────────────────────
 interface CouponRadiusMapProps {
@@ -91,8 +101,10 @@ export default function CouponRadiusMap({
   const leafletMap = useRef<any>(null);
   const circleRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+  const edgeMarkerRef = useRef<any>(null);
   const [L, setL] = useState<any>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [isDraggingEdge, setIsDraggingEdge] = useState(false);
   const [currentCenter, setCurrentCenter] = useState({
     lat: centerLat || 37.5665,
     lng: centerLng || 126.978,
@@ -156,6 +168,8 @@ export default function CouponRadiusMap({
       circle.setLatLng(pos);
       map.panTo(pos);
       onCenterChange?.(pos.lat, pos.lng);
+      // 엣지 핸들도 같이 이동
+      updateEdgeHandle(pos.lat, pos.lng, circle.getRadius(), L, map);
     });
 
     map.on('click', (e: any) => {
@@ -164,11 +178,57 @@ export default function CouponRadiusMap({
       circle.setLatLng([lat, lng]);
       setCurrentCenter({ lat, lng });
       onCenterChange?.(lat, lng);
+      // 엣지 핸들도 이동
+      updateEdgeHandle(lat, lng, circle.getRadius(), L, map);
+    });
+
+    // ★ 반경 조절 엣지 핸들 (원 가장자리 드래그!)
+    const edgePos = getEdgePoint(currentCenter.lat, currentCenter.lng, localRadius);
+    const edgeIcon = L.divIcon({
+      className: 'edge-handle',
+      html: `<div style="
+        width:24px; height:24px; background:white; border:3px solid #6366f1;
+        border-radius:50%; box-shadow:0 2px 8px rgba(0,0,0,0.3); cursor:grab;
+        display:flex; align-items:center; justify-content:center; font-size:10px;
+      ">↔</div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+
+    const edgeMarker = L.marker(edgePos, {
+      icon: edgeIcon,
+      draggable: true,
+    }).addTo(map);
+
+    // 엣지 드래그 → 반경 실시간 변경!
+    edgeMarker.on('dragstart', () => { setIsDraggingEdge(true); });
+    edgeMarker.on('drag', () => {
+      const edgeLatlng = edgeMarker.getLatLng();
+      const centerLatlng = marker.getLatLng();
+      const newRadius = Math.round(
+        centerLatlng.distanceTo(edgeLatlng) // Leaflet 내장 거리계산 (미터)
+      );
+      const clampedRadius = Math.max(50, Math.min(20000000, newRadius));
+      circle.setRadius(clampedRadius);
+      setLocalRadius(clampedRadius);
+      onRadiusChange(clampedRadius);
+    });
+    edgeMarker.on('dragend', () => {
+      setIsDraggingEdge(false);
+      const edgeLatlng = edgeMarker.getLatLng();
+      const centerLatlng = marker.getLatLng();
+      const newRadius = Math.max(50, Math.min(20000000,
+        Math.round(centerLatlng.distanceTo(edgeLatlng))
+      ));
+      // 드래그 끝나면 핸들을 정확한 동쪽 위치로 스냅
+      const snapped = getEdgePoint(centerLatlng.lat, centerLatlng.lng, newRadius);
+      edgeMarker.setLatLng(snapped);
     });
 
     leafletMap.current = map;
     circleRef.current = circle;
     markerRef.current = marker;
+    edgeMarkerRef.current = edgeMarker;
     setMapReady(true);
 
     return () => {
@@ -176,20 +236,32 @@ export default function CouponRadiusMap({
       leafletMap.current = null;
       circleRef.current = null;
       markerRef.current = null;
+      edgeMarkerRef.current = null;
       setMapReady(false);
     };
   }, [L]);
 
-  // ── 반경 변경 시 원 업데이트 ──
+  // ── 엣지 핸들 위치 업데이트 헬퍼 ──
+  const updateEdgeHandle = useCallback((lat: number, lng: number, radius: number, _L?: any, _map?: any) => {
+    if (!edgeMarkerRef.current) return;
+    const pos = getEdgePoint(lat, lng, radius);
+    edgeMarkerRef.current.setLatLng(pos);
+  }, []);
+
+  // ── 반경 변경 시 원 + 엣지 핸들 업데이트 ──
   useEffect(() => {
     if (!circleRef.current || !leafletMap.current) return;
     circleRef.current.setRadius(localRadius);
-    leafletMap.current.setView(
-      [currentCenter.lat, currentCenter.lng],
-      radiusToZoom(localRadius),
-      { animate: true }
-    );
-  }, [localRadius, currentCenter]);
+    // 엣지 드래그 중엔 줌 변경 안 함 (깜빡임 방지)
+    if (!isDraggingEdge) {
+      leafletMap.current.setView(
+        [currentCenter.lat, currentCenter.lng],
+        radiusToZoom(localRadius),
+        { animate: true }
+      );
+    }
+    updateEdgeHandle(currentCenter.lat, currentCenter.lng, localRadius);
+  }, [localRadius, currentCenter, isDraggingEdge, updateEdgeHandle]);
 
   const handleSlider = useCallback((val: number) => {
     setLocalRadius(val);
@@ -307,10 +379,10 @@ export default function CouponRadiusMap({
             ))}
           </div>
 
-          <div className="text-center text-xs text-slate-400">
-            📍 중심: {currentCenter.lat.toFixed(5)}, {currentCenter.lng.toFixed(5)}
-            <span className="mx-2">|</span>
-            지도를 탭하거나 핀을 드래그하여 위치 변경
+          <div className="text-center text-xs text-slate-400 space-y-0.5">
+            <p>📍 중심: {currentCenter.lat.toFixed(5)}, {currentCenter.lng.toFixed(5)}</p>
+            <p>🔵 원 가장자리 ↔ 핸들을 드래그하여 반경 조절</p>
+            <p>📌 핀 드래그 or 지도 탭 → 위치 변경</p>
           </div>
 
           <Button
