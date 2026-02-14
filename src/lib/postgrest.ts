@@ -1,13 +1,22 @@
 import { PostgrestClient } from "@supabase/postgrest-js";
 
-const SUPABASE_URL = process.env.POSTGREST_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+// ★ ENV 이름 다양한 패턴 전부 지원 (Vercel 설정 실수 방지)
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  process.env.POSTGREST_URL ||
+  "";
 const POSTGREST_SCHEMA = process.env.POSTGREST_SCHEMA || "public";
-const SUPABASE_ANON_KEY = process.env.POSTGREST_API_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.POSTGREST_API_KEY ||
+  "";
 
 // Supabase REST API 엔드포인트: https://xxx.supabase.co/rest/v1
-const POSTGREST_URL = SUPABASE_URL.endsWith("/rest/v1")
-  ? SUPABASE_URL
-  : `${SUPABASE_URL}/rest/v1`;
+const POSTGREST_URL = SUPABASE_URL
+  ? (SUPABASE_URL.endsWith("/rest/v1") ? SUPABASE_URL : `${SUPABASE_URL}/rest/v1`)
+  : "";
 
 export function createPostgrestClient(token?: string) {
   const authToken = token || SUPABASE_ANON_KEY;

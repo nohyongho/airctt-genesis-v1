@@ -86,3 +86,7 @@ build_log*.txt
 
 # Legacy source folders
 jldteam-*/
+# 스키마 바이너리
+스키마파일 ctt/
+*.apk*
+*.pak
