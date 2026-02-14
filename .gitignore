@@ -66,3 +66,23 @@ files.zip
 
 # Secrets
 클키.txt
+
+# Legacy HTML files (contain hardcoded keys)
+AIRCTT-COMPLETE.html
+AIRCTT-DEMO.html
+AIRCTT_WITH_SOCIAL_LOGIN.html
+airctt-complete-homepage.html
+airctt-final-with-globe.html
+airctt-interactive-final-COMPLETE.html
+airctt-interactive-final.html
+store_homepage.html
+store_homepage_full.html
+test_register.html
+migration_store_media_links.html
+supabase_guide.html
+
+# Build logs
+build_log*.txt
+
+# Legacy source folders
+jldteam-*/
