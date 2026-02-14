@@ -72,7 +72,7 @@ export async function GET(request: Request) {
           video_url,
           video_autoplay_wallet,
           merchants ( name ),
-          stores ( id, name, slug )
+          stores ( id, name )
         )
       `)
             .or(`user_id.eq.${consumerKey},user_id.eq.00000000-0000-0000-0000-000000000000`)
@@ -96,7 +96,6 @@ export async function GET(request: Request) {
             discountType: issue.coupons.discount_type,
             storeId: issue.coupons.store_id,
             storeName: issue.coupons.stores?.name,
-            storeSlug: issue.coupons.stores?.slug,
             // ★ 영상 쿠폰
             videoUrl: issue.coupons.video_url,
             videoAutoplay: issue.coupons.video_autoplay_wallet,
