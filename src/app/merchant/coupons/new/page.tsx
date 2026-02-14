@@ -217,7 +217,10 @@ export default function CouponCreatePage() {
                                 </div>
                                 <Select
                                     value={formData.radiusType}
-                                    onValueChange={(v: any) => setFormData({ ...formData, radiusType: v })}
+                                    onValueChange={(v: any) => {
+                                        setFormData({ ...formData, radiusType: v });
+                                        if (v === 'custom') setShowMap(true);
+                                    }}
                                 >
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
@@ -226,6 +229,19 @@ export default function CouponCreatePage() {
                                         <SelectItem value="nationwide">전국 배포</SelectItem>
                                     </SelectContent>
                                 </Select>
+
+                                {/* ★ 지도에서 위치/반경 설정 버튼 — 항상 표시 (전국배포 제외) */}
+                                {formData.radiusType !== 'nationwide' && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setShowMap(true)}
+                                        className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-bold text-base h-12"
+                                    >
+                                        <Map className="w-5 h-5 mr-2" />
+                                        🗺️ 지도에서 배포 위치 · 거리 설정
+                                    </Button>
+                                )}
 
                                 {formData.radiusType !== 'nationwide' && (
                                     <div className="space-y-2">
@@ -246,16 +262,6 @@ export default function CouponCreatePage() {
                                         <div className="flex justify-between text-[10px] text-slate-400">
                                             <span>50m</span><span>500m</span><span>5km</span><span>50km</span><span>500km</span><span>20,000km</span>
                                         </div>
-                                        {/* ★ 지도에서 위치/반경 설정 버튼 */}
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setShowMap(true)}
-                                            className="w-full mt-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-semibold"
-                                        >
-                                            <Map className="w-4 h-4 mr-2" />
-                                            🗺️ 지도에서 배포 위치 · 거리 설정
-                                        </Button>
                                         {formData.centerLat !== 37.5665 && (
                                             <p className="text-xs text-emerald-600 text-center">
                                                 ✅ 설정됨: {formData.centerLat.toFixed(4)}, {formData.centerLng.toFixed(4)} / 반경 {formatRadius(formData.radiusM)}
