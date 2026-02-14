@@ -1,17 +1,17 @@
 import { PostgrestClient } from "@supabase/postgrest-js";
 
-// ★ ENV 이름 다양한 패턴 전부 지원 (Vercel 설정 실수 방지)
+// ★ ENV 다중 fallback + 하드코딩 기본값 (anon key는 공개 키라 안전)
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
   process.env.SUPABASE_URL ||
   process.env.POSTGREST_URL ||
-  "";
+  "https://nlsiwrwiyozpiofrmzxa.supabase.co";
 const POSTGREST_SCHEMA = process.env.POSTGREST_SCHEMA || "public";
 const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY ||
   process.env.POSTGREST_API_KEY ||
-  "";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sc2l3cndpeW96cGlvZnJtenhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTc4NzcsImV4cCI6MjA3NjczMzg3N30.hurd7QNUJ-JVppETyDnCwU97F1Z3jkWszYRM9NhSUAg";
 
 // Supabase REST API 엔드포인트: https://xxx.supabase.co/rest/v1
 const POSTGREST_URL = SUPABASE_URL
