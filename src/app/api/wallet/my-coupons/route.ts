@@ -69,8 +69,6 @@ export async function GET(request: Request) {
           discount_type,
           valid_to,
           store_id,
-          video_url,
-          video_autoplay_wallet,
           merchants ( name ),
           stores ( id, name )
         )
@@ -96,9 +94,6 @@ export async function GET(request: Request) {
             discountType: issue.coupons.discount_type,
             storeId: issue.coupons.store_id,
             storeName: issue.coupons.stores?.name,
-            // ★ 영상 쿠폰
-            videoUrl: issue.coupons.video_url,
-            videoAutoplay: issue.coupons.video_autoplay_wallet,
         }));
 
         // ★ 중복 제거: 동일 쿠폰(title+brand) 1장만 표시
