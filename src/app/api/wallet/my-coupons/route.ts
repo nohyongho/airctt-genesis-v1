@@ -12,6 +12,21 @@ export async function GET(request: Request) {
         // But User asked for "Connect REAL ID". So let's try to use the token.
 
         const token = authHeader?.replace('Bearer ', '');
+
+        // ★ ENV 디버그 (값은 노출하지 않음)
+        const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+        const supaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+        const pgUrl = process.env.POSTGREST_URL || '';
+        const pgKey = process.env.POSTGREST_API_KEY || '';
+        console.log(`[Wallet API] ENV Check: SUPABASE_URL=${supaUrl.length > 0 ? `SET(${supaUrl.length}c)` : 'EMPTY'}, ANON_KEY=${supaKey.length > 0 ? `SET(${supaKey.length}c)` : 'EMPTY'}, POSTGREST_URL=${pgUrl.length > 0 ? `SET(${pgUrl.length}c)` : 'EMPTY'}, POSTGREST_API_KEY=${pgKey.length > 0 ? `SET(${pgKey.length}c)` : 'EMPTY'}`);
+
+        if (!supaUrl && !pgUrl) {
+            return NextResponse.json({
+                error: 'NEXT_PUBLIC_SUPABASE_URL is not set in Vercel ENV',
+                hint: 'Go to Vercel → Settings → Environment Variables → Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
+            }, { status: 500 });
+        }
+
         const client = createPostgrestClient(token);
 
         // Get User ID from Token (via RPC to auth.uid() or simply trusting the token's subject claiming)
