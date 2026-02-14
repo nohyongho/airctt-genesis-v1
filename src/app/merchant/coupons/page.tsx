@@ -675,8 +675,8 @@ export default function MerchantCouponsPage() {
 
       {/* Create Coupon Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="glass-card max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="glass-card max-w-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />새 쿠폰 만들기
             </DialogTitle>
@@ -684,6 +684,7 @@ export default function MerchantCouponsPage() {
               새로운 할인 쿠폰을 생성합니다
             </DialogDescription>
           </DialogHeader>
+          <div className="flex-1 overflow-y-auto pr-2" style={{ maxHeight: 'calc(90vh - 160px)' }}>
 
           {creationStep === 'FORM' ? (
             <div className="space-y-6 py-4">
@@ -1057,7 +1058,9 @@ export default function MerchantCouponsPage() {
             </div>
           )}
 
-          <DialogFooter>
+          </div>{/* end scroll area */}
+
+          <DialogFooter className="flex-shrink-0 pt-4 border-t border-white/10">
             <Button
               variant="ghost"
               onClick={() => {
