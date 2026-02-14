@@ -114,9 +114,9 @@ nextjs-portal,
     @apply border-border;
   }
 
-  /* Global Scaling - 80% (4/5) Size */
+  /* Global Scaling - 100% (Normal) */
   html {
-    font-size: 80%; /* 16px * 0.8 = 12.8px base */
+    font-size: 100%; /* 16px base - 브라우저 기본 크기 */
     scroll-behavior: smooth;
   }
 

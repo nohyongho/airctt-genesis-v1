@@ -3,7 +3,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Ticket, Calendar, Ban, CheckCircle2, Copy, MapPin, Clock, Globe } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Ticket, Calendar, Ban, CheckCircle2, Copy, MapPin, Clock, Globe, Map } from 'lucide-react';
+
+// ★ 지도 컴포넌트 (SSR 방지 - Leaflet은 window 필요)
+const CouponRadiusMap = dynamic(() => import('@/components/merchant/CouponRadiusMap'), { ssr: false });
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +20,7 @@ import { toast } from 'sonner';
 export default function CouponCreatePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [showMap, setShowMap] = useState(false);
 
     // Coupon Form State
     const [formData, setFormData] = useState({
@@ -32,6 +37,9 @@ export default function CouponCreatePage() {
         // ★ 반경 설정 (미터 단위, 안전핀2 반영)
         radiusType: 'store' as 'store' | 'custom' | 'nationwide',
         radiusM: 5000,
+        // ★ 배포 중심 좌표
+        centerLat: 37.5665,
+        centerLng: 126.978,
         // ★ 배포 시간
         distributionStartTime: '09:00',
         distributionEndTime: '22:00',
@@ -238,6 +246,21 @@ export default function CouponCreatePage() {
                                         <div className="flex justify-between text-[10px] text-slate-400">
                                             <span>50m</span><span>500m</span><span>5km</span><span>50km</span><span>500km</span><span>20,000km</span>
                                         </div>
+                                        {/* ★ 지도에서 위치/반경 설정 버튼 */}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setShowMap(true)}
+                                            className="w-full mt-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-semibold"
+                                        >
+                                            <Map className="w-4 h-4 mr-2" />
+                                            🗺️ 지도에서 배포 위치 · 거리 설정
+                                        </Button>
+                                        {formData.centerLat !== 37.5665 && (
+                                            <p className="text-xs text-emerald-600 text-center">
+                                                ✅ 설정됨: {formData.centerLat.toFixed(4)}, {formData.centerLng.toFixed(4)} / 반경 {formatRadius(formData.radiusM)}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
                                 {formData.radiusType === 'nationwide' && (
@@ -330,6 +353,22 @@ export default function CouponCreatePage() {
                     </div>
                 </div>
             </div>
+
+            {/* ★ 쿠폰 배포 위치 지도 모달 */}
+            {showMap && (
+                <CouponRadiusMap
+                    radiusM={formData.radiusM}
+                    onRadiusChange={(m) => setFormData((prev) => ({ ...prev, radiusM: m }))}
+                    centerLat={formData.centerLat}
+                    centerLng={formData.centerLng}
+                    onCenterChange={(lat, lng) => setFormData((prev) => ({ ...prev, centerLat: lat, centerLng: lng }))}
+                    onClose={() => setShowMap(false)}
+                    onConfirm={() => {
+                        setShowMap(false);
+                        toast.success(`배포 위치 설정 완료! 반경 ${formatRadius(formData.radiusM)}`);
+                    }}
+                />
+            )}
         </div>
     );
 }

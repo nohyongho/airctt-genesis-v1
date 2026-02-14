@@ -64,6 +64,25 @@ export default function MarketplaceMain() {
           <div className="absolute bottom-4 right-12 text-2xl animate-bounce">🍫</div>
         </section>
 
+        {/* 구름장터 (Merchant Store) */}
+        <section>
+          <a
+            href="https://airctt-genesis-v1-veeu-git-main-nohyonghos-projects.vercel.app/merchant"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block relative h-24 rounded-2xl overflow-hidden shadow-md transform transition hover:scale-[1.02] active:scale-95"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600" />
+            <div className="absolute inset-0 flex items-center justify-between px-6 text-white">
+              <div>
+                <h3 className="text-xl font-bold">☁️ 구름장터</h3>
+                <p className="text-sm opacity-90 mt-0.5">사장님 전용 — 매장·쿠폰 관리</p>
+              </div>
+              <span className="text-3xl">🏪</span>
+            </div>
+          </a>
+        </section>
+
         {/* Categories Grid */}
         <section>
           <div className="flex justify-between items-end mb-4">
