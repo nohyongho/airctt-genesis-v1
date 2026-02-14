@@ -86,6 +86,7 @@ interface CouponRadiusMapProps {
   onCenterChange?: (lat: number, lng: number) => void;
   onClose: () => void;
   onConfirm: () => void;
+  inline?: boolean;  // true = 인라인 미니지도 모드 (모달 X, 지도만)
 }
 
 export default function CouponRadiusMap({
@@ -93,6 +94,11 @@ export default function CouponRadiusMap({
   onRadiusChange,
   centerLat,
   centerLng,
+  onCenterChange,
+  onClose,
+  onConfirm,
+  inline = false,
+}: CouponRadiusMapProps) {
   onCenterChange,
   onClose,
   onConfirm,
@@ -300,6 +306,26 @@ export default function CouponRadiusMap({
     { label: '500km', value: 500000 },
   ];
 
+  // ── 인라인 모드: 지도만 렌더 ──
+  if (inline) {
+    return (
+      <div className="relative w-full h-full">
+        <div ref={mapRef} className="w-full h-full bg-slate-200 rounded-xl" />
+        {!mapReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-100 rounded-xl">
+            <div className="animate-spin w-6 h-6 border-3 border-indigo-500 border-t-transparent rounded-full" />
+            <span className="ml-2 text-slate-500 text-sm">지도 로딩...</span>
+          </div>
+        )}
+        {/* 반경 표시 배지 */}
+        <div className="absolute bottom-2 left-2 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow text-sm font-bold text-indigo-600">
+          📍 {formatRadius(localRadius)}
+        </div>
+      </div>
+    );
+  }
+
+  // ── 모달 모드 (팝업 확대) ──
   return (
     <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">

@@ -95,16 +95,16 @@ export default function CouponCreatePage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 md:p-8 flex justify-center">
+        <div className="min-h-screen bg-slate-50 p-4 md:p-8 flex justify-center text-[1.1rem]">
             <div className="w-full max-w-3xl space-y-6">
 
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-800">새 쿠폰 만들기</h1>
-                        <p className="text-slate-500">고객들을 끌어당길 매력적인 혜택을 만들어보세요.</p>
+                        <h1 className="text-3xl font-bold text-slate-800">새 쿠폰 만들기</h1>
+                        <p className="text-lg text-slate-500">고객들을 끌어당길 매력적인 혜택을 만들어보세요.</p>
                     </div>
-                    <Button variant="ghost" onClick={() => router.back()}>취소</Button>
+                    <Button variant="ghost" className="text-lg px-5 py-3" onClick={() => router.back()}>취소</Button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -112,14 +112,15 @@ export default function CouponCreatePage() {
                     {/* Left: Form */}
                     <Card className="md:col-span-2 shadow-sm">
                         <CardHeader>
-                            <CardTitle>쿠폰 상세 설정</CardTitle>
+                            <CardTitle className="text-2xl">쿠폰 상세 설정</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
 
                             <div className="space-y-2">
-                                <Label>쿠폰 이름</Label>
+                                <Label className="text-base font-semibold">쿠폰 이름</Label>
                                 <Input
                                     placeholder="예: 전 메뉴 10% 할인, 아메리카노 1잔 무료"
+                                    className="h-12 text-base"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 />
@@ -230,26 +231,41 @@ export default function CouponCreatePage() {
                                     </SelectContent>
                                 </Select>
 
-                                {/* ★ 지도에서 위치/반경 설정 버튼 — 항상 표시 (전국배포 제외) */}
+                                {/* ★ 인라인 미니 지도 + 반경 슬라이더 (전국배포 제외) */}
                                 {formData.radiusType !== 'nationwide' && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setShowMap(true)}
-                                        className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 font-bold text-base h-12"
-                                    >
-                                        <Map className="w-5 h-5 mr-2" />
-                                        🗺️ 지도에서 배포 위치 · 거리 설정
-                                    </Button>
-                                )}
+                                    <div className="space-y-3">
+                                        {/* 미니 지도 — 클릭하면 팝업 확대 */}
+                                        <div
+                                            className="relative rounded-xl overflow-hidden border-2 border-emerald-200 cursor-pointer hover:border-emerald-400 transition-all group"
+                                            onClick={() => setShowMap(true)}
+                                        >
+                                            <div className="w-full h-[200px]">
+                                                <CouponRadiusMap
+                                                    radiusM={formData.radiusM}
+                                                    onRadiusChange={(m) => setFormData((prev) => ({ ...prev, radiusM: m }))}
+                                                    centerLat={formData.centerLat}
+                                                    centerLng={formData.centerLng}
+                                                    onCenterChange={(lat, lng) => setFormData((prev) => ({ ...prev, centerLat: lat, centerLng: lng }))}
+                                                    onClose={() => {}}
+                                                    onConfirm={() => {}}
+                                                    inline={true}
+                                                />
+                                            </div>
+                                            {/* 확대 오버레이 */}
+                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center">
+                                                <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2">
+                                                    <Map className="w-5 h-5 text-indigo-600" />
+                                                    <span className="font-bold text-indigo-600 text-base">탭하여 확대 🔍</span>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                {formData.radiusType !== 'nationwide' && (
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="font-medium text-emerald-700">
-                                                반경: {formatRadius(formData.radiusM)}
+                                        {/* 반경 표시 + 슬라이더 */}
+                                        <div className="flex justify-between text-base">
+                                            <span className="font-bold text-emerald-700">
+                                                📍 반경: {formatRadius(formData.radiusM)}
                                             </span>
-                                            <span className="text-slate-400 text-xs">50m ~ 20,000km</span>
+                                            <span className="text-slate-400 text-sm">50m ~ 20,000km</span>
                                         </div>
                                         <input
                                             type="range"
@@ -257,13 +273,13 @@ export default function CouponCreatePage() {
                                             step={formData.radiusM < 1000 ? 50 : formData.radiusM < 10000 ? 500 : formData.radiusM < 100000 ? 5000 : 50000}
                                             value={formData.radiusM}
                                             onChange={(e) => setFormData({ ...formData, radiusM: parseInt(e.target.value) })}
-                                            className="w-full accent-emerald-500"
+                                            className="w-full accent-emerald-500 h-3"
                                         />
-                                        <div className="flex justify-between text-[10px] text-slate-400">
+                                        <div className="flex justify-between text-xs text-slate-400">
                                             <span>50m</span><span>500m</span><span>5km</span><span>50km</span><span>500km</span><span>20,000km</span>
                                         </div>
                                         {formData.centerLat !== 37.5665 && (
-                                            <p className="text-xs text-emerald-600 text-center">
+                                            <p className="text-sm text-emerald-600 text-center font-medium">
                                                 ✅ 설정됨: {formData.centerLat.toFixed(4)}, {formData.centerLng.toFixed(4)} / 반경 {formatRadius(formData.radiusM)}
                                             </p>
                                         )}
@@ -278,32 +294,32 @@ export default function CouponCreatePage() {
                             </div>
 
                             {/* ★ 배포 시간 */}
-                            <div className="space-y-3 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                            <div className="space-y-3 p-5 bg-amber-50 rounded-xl border border-amber-100">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Clock className="w-4 h-4 text-amber-500" />
-                                    <Label className="text-amber-700 font-semibold">배포 시간</Label>
+                                    <Clock className="w-5 h-5 text-amber-500" />
+                                    <Label className="text-amber-700 font-bold text-base">배포 시간</Label>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <Label className="text-xs text-slate-500">시작</Label>
-                                        <Input type="time" value={formData.distributionStartTime}
+                                        <Label className="text-sm text-slate-500">시작</Label>
+                                        <Input type="time" className="h-12 text-base" value={formData.distributionStartTime}
                                             onChange={(e) => setFormData({ ...formData, distributionStartTime: e.target.value })} />
                                     </div>
                                     <div className="space-y-1">
-                                        <Label className="text-xs text-slate-500">종료</Label>
-                                        <Input type="time" value={formData.distributionEndTime}
+                                        <Label className="text-sm text-slate-500">종료</Label>
+                                        <Input type="time" className="h-12 text-base" value={formData.distributionEndTime}
                                             onChange={(e) => setFormData({ ...formData, distributionEndTime: e.target.value })} />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label>대표 이미지 업로드</Label>
-                                <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 flex flex-col items-center justify-center text-slate-400 gap-2 hover:bg-slate-50 hover:border-indigo-300 transition-colors cursor-pointer">
-                                    <div className="bg-slate-100 p-2 rounded-full">
-                                        <Copy className="w-6 h-6" />
+                                <Label className="text-base font-semibold">대표 이미지 업로드</Label>
+                                <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-slate-400 gap-3 hover:bg-slate-50 hover:border-indigo-300 transition-colors cursor-pointer">
+                                    <div className="bg-slate-100 p-3 rounded-full">
+                                        <Copy className="w-8 h-8" />
                                     </div>
-                                    <span className="text-sm">클릭하여 이미지 업로드 (최대 5MB)</span>
+                                    <span className="text-base">클릭하여 이미지 업로드 (최대 5MB)</span>
                                 </div>
                             </div>
 
@@ -350,11 +366,11 @@ export default function CouponCreatePage() {
 
                         <Button
                             size="lg"
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 h-12 text-lg font-bold shadow-lg shadow-indigo-200"
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 h-16 text-xl font-bold shadow-lg shadow-indigo-200 rounded-xl"
                             onClick={handleCreate}
                             disabled={loading}
                         >
-                            {loading ? '발행 중...' : '쿠폰 발행하기'}
+                            {loading ? '발행 중...' : '🎟️ 쿠폰 발행하기'}
                         </Button>
                     </div>
                 </div>
