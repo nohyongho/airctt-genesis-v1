@@ -28,15 +28,18 @@ export async function GET() {
     }
   }
 
-  // Supabase 연결 테스트
+  // Supabase 연결 테스트 — JWT 형식(eyJ, 100+글자)만 유효한 키로 인정
+  const HARDCODED_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sc2l3cndpeW96cGlvZnJtenhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTc4NzcsImV4cCI6MjA3NjczMzg3N30.hurd7QNUJ-JVppETyDnCwU97F1Z3jkWszYRM9NhSUAg';
   const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     || process.env.POSTGREST_URL
     || process.env.SUPABASE_URL
     || 'https://nlsiwrwiyozpiofrmzxa.supabase.co';
-  const supaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    || process.env.POSTGREST_API_KEY
-    || process.env.SUPABASE_ANON_KEY
-    || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sc2l3cndpeW96cGlvZnJtenhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTc4NzcsImV4cCI6MjA3NjczMzg3N30.hurd7QNUJ-JVppETyDnCwU97F1Z3jkWszYRM9NhSUAg';
+  const candidates = [
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    process.env.POSTGREST_API_KEY,
+    process.env.SUPABASE_ANON_KEY,
+  ];
+  const supaKey = candidates.find(c => c && c.startsWith('eyJ') && c.length > 100) || HARDCODED_KEY;
 
   let connectionTest = 'SKIPPED';
   if (supaUrl && supaKey) {

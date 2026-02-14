@@ -1,17 +1,27 @@
 import { PostgrestClient } from "@supabase/postgrest-js";
 
-// ★ ENV 다중 fallback + 하드코딩 기본값 (anon key는 공개 키라 안전)
+// ★ Supabase anon key는 JWT 형식 (eyJ로 시작, 200+글자). 짧은 키는 무시!
+const HARDCODED_URL = "https://nlsiwrwiyozpiofrmzxa.supabase.co";
+const HARDCODED_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sc2l3cndpeW96cGlvZnJtenhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTc4NzcsImV4cCI6MjA3NjczMzg3N30.hurd7QNUJ-JVppETyDnCwU97F1Z3jkWszYRM9NhSUAg";
+
+function pickValidKey(...candidates: (string | undefined)[]): string {
+  for (const c of candidates) {
+    if (c && c.startsWith("eyJ") && c.length > 100) return c;
+  }
+  return HARDCODED_KEY;
+}
+
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
   process.env.SUPABASE_URL ||
   process.env.POSTGREST_URL ||
-  "https://nlsiwrwiyozpiofrmzxa.supabase.co";
+  HARDCODED_URL;
 const POSTGREST_SCHEMA = process.env.POSTGREST_SCHEMA || "public";
-const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  process.env.POSTGREST_API_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sc2l3cndpeW96cGlvZnJtenhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNTc4NzcsImV4cCI6MjA3NjczMzg3N30.hurd7QNUJ-JVppETyDnCwU97F1Z3jkWszYRM9NhSUAg";
+const SUPABASE_ANON_KEY = pickValidKey(
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  process.env.SUPABASE_ANON_KEY,
+  process.env.POSTGREST_API_KEY,
+);
 
 // Supabase REST API 엔드포인트: https://xxx.supabase.co/rest/v1
 const POSTGREST_URL = SUPABASE_URL
