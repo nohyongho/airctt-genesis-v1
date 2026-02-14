@@ -705,6 +705,11 @@ export default function CouponGame3D({ onCouponAcquired, onClose, lang = 'ko' }:
 
     const t = (ko: string, en: string) => lang === 'ko' ? ko : en;
 
+    // ★ 다크모드 토글
+    const toggleDark = useCallback(() => {
+        document.documentElement.classList.toggle('dark');
+    }, []);
+
     return (
         <div ref={containerRef} className="relative w-full h-screen overflow-hidden bg-background">
             {/* Canvas */}
@@ -729,6 +734,10 @@ export default function CouponGame3D({ onCouponAcquired, onClose, lang = 'ko' }:
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
                         )}
+                        {/* Dark mode toggle */}
+                        <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-lg" onClick={toggleDark} title="다크모드">
+                            🌙
+                        </Button>
 
                         <motion.div
                             className="w-24 h-24 rounded-3xl bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 flex items-center justify-center mb-8 shadow-xl shadow-purple-500/30"
@@ -807,6 +816,9 @@ export default function CouponGame3D({ onCouponAcquired, onClose, lang = 'ko' }:
 
                             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={togglePause}>
                                 {gameState === 'paused' ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 text-sm" onClick={toggleDark}>
+                                🌙
                             </Button>
                         </div>
                     </div>
