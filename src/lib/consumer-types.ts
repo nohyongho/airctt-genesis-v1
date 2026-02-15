@@ -27,6 +27,10 @@ export interface Coupon {
   // ★ 영상 쿠폰
   videoUrl?: string;
   videoAutoplay?: boolean;
+  // ★ 외부 링크 (구매/배달/예약)
+  purchaseUrl?: string;
+  orderUrl?: string;
+  reservationUrl?: string;
   issuerInfo?: {
     name: string;
     brand: string;

@@ -63,8 +63,29 @@ export default function WalletPage() {
           storeService.getNearbyStores(),
         ]);
 
+        // ★ localStorage에서 게임/지도 쿠폰 가져오기
+        let localCoupons: Coupon[] = [];
+        try {
+          const storedCoupons = localStorage.getItem('my-coupons');
+          if (storedCoupons) {
+            localCoupons = JSON.parse(storedCoupons);
+          }
+        } catch (e) {
+          console.error('Failed to read localStorage coupons:', e);
+        }
+
+        // ★ DB 쿠폰 + localStorage 쿠폰 병합 (중복 제거)
+        const allCoupons = [...couponsData, ...localCoupons];
+        const seen = new Set<string>();
+        const uniqueCoupons = allCoupons.filter((coupon) => {
+          const key = `${coupon.id}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
         // 매장 정보와 거리 계산하여 쿠폰에 추가
-        const couponsWithStore: CouponWithStore[] = couponsData.map(coupon => {
+        const couponsWithStore: CouponWithStore[] = uniqueCoupons.map(coupon => {
           // 브랜드명으로 매장 찾기
           const matchedStore = storesData.find(store =>
             store.name.includes(coupon.brand) || coupon.brand.includes(store.name)

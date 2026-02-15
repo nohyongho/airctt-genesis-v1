@@ -671,6 +671,58 @@ export default function CouponGame3D({ onCouponAcquired, onClose, lang = 'ko' }:
         // 🔊 Sound: game over
         soundEngine.gameOver();
 
+        // ★ Save won coupons to localStorage (my-coupons)
+        if (g.wonCoupons.length > 0) {
+            try {
+                const existing = JSON.parse(localStorage.getItem('my-coupons') || '[]');
+                const newCoupons = g.wonCoupons.map((coupon, index) => {
+                    // Demo URLs for testing (쿠폰 종류별 적절한 URL)
+                    let purchaseUrl, orderUrl, reservationUrl;
+                    if (coupon.name.includes('피자') || coupon.name.includes('도시락') || coupon.name.includes('디저트')) {
+                        orderUrl = 'https://www.baemin.com';
+                    } else if (coupon.name.includes('카페') || coupon.name.includes('커피')) {
+                        orderUrl = 'https://www.yogiyo.co.kr';
+                        purchaseUrl = 'https://www.coupang.com';
+                    } else if (coupon.name.includes('영화')) {
+                        reservationUrl = 'https://www.cgv.co.kr';
+                        purchaseUrl = 'https://www.megabox.co.kr';
+                    } else if (coupon.name.includes('헬스')) {
+                        reservationUrl = 'https://www.naver.com/booking';
+                    } else if (coupon.name.includes('쇼핑')) {
+                        purchaseUrl = 'https://www.coupang.com';
+                    } else if (coupon.name.includes('게임')) {
+                        purchaseUrl = 'https://store.steampowered.com';
+                    } else if (coupon.name.includes('미용')) {
+                        reservationUrl = 'https://www.naver.com/booking';
+                    } else if (coupon.name.includes('세차')) {
+                        reservationUrl = 'https://booking.naver.com';
+                    }
+
+                    return {
+                        id: `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                        title: coupon.name,
+                        brand: coupon.name.split(' ')[0],
+                        description: `게임에서 획득한 ${coupon.discount} 할인 쿠폰`,
+                        storeName: '게임 보상',
+                        discount: coupon.discount,
+                        color: coupon.color,
+                        claimedAt: new Date().toISOString(),
+                        status: 'available',
+                        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30일
+                        emoji: coupon.emoji,
+                        points: coupon.points,
+                        // ★ 외부 링크 추가
+                        purchaseUrl,
+                        orderUrl,
+                        reservationUrl,
+                    };
+                });
+                localStorage.setItem('my-coupons', JSON.stringify([...existing, ...newCoupons]));
+            } catch (error) {
+                console.error('Failed to save coupons to localStorage:', error);
+            }
+        }
+
         setFinalStats({
             score: g.score,
             coupons: g.couponsCollected,

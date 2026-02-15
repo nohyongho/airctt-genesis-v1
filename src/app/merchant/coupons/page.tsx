@@ -258,6 +258,10 @@ export default function MerchantCouponsPage() {
       totalQuantity: 100,
       image: null,
       imagePreview: null,
+      radiusType: 'store',
+      radiusM: 5000,
+      centerLat: 37.5665,
+      centerLng: 126.978,
     });
 
     setIsAIGenerating(false);
@@ -313,6 +317,11 @@ export default function MerchantCouponsPage() {
       imageUrl: newCoupon.imagePreview || undefined,
       mediaType: newCoupon.image?.type.startsWith('video/') ? 'VIDEO' : 'IMAGE',
       createdAt: new Date().toISOString(),
+      // ★ 배포 반경 정보 추가
+      radiusType: newCoupon.radiusType,
+      radiusM: newCoupon.radiusM,
+      centerLat: newCoupon.centerLat,
+      centerLng: newCoupon.centerLng,
     } as MerchantCoupon);
 
     const normalized = {
@@ -335,6 +344,10 @@ export default function MerchantCouponsPage() {
       totalQuantity: 100,
       image: null,
       imagePreview: null,
+      radiusType: 'store',
+      radiusM: 5000,
+      centerLat: 37.5665,
+      centerLng: 126.978,
     });
     toast.success('쿠폰이 생성되었습니다');
   };

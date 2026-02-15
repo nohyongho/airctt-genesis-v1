@@ -55,6 +55,11 @@ export interface MerchantCoupon {
   usedQuantity: number;
   status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
   createdAt: string;
+  // ★ 배포 반경 정보
+  radiusType?: 'store' | 'custom' | 'nationwide';
+  radiusM?: number;
+  centerLat?: number;
+  centerLng?: number;
 }
 
 export interface CouponUsage {

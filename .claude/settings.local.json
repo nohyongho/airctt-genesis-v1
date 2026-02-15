@@ -3,7 +3,14 @@
     "allow": [
       "Bash(npm run test:run:*)",
       "Bash(npm install:*)",
-      "Bash(npm run test:coverage:*)"
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 13960 -Force\" 2)",
+      "Bash(nul)",
+      "Bash(powershell -Command \"Stop-Process -Id 19848 -Force\" 2)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

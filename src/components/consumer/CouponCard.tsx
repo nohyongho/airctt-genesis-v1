@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Ticket, Calendar, MapPin, Navigation, ExternalLink } from 'lucide-react';
+import { Ticket, Calendar, MapPin, Navigation, ExternalLink, ShoppingCart, Truck, CalendarCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -173,11 +173,62 @@ export default function CouponCard({
                 variant="ghost"
                 size="sm"
                 className="mt-2 h-7 text-xs gap-1 text-primary hover:text-primary justify-start px-0"
-                onClick={openDirections}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDirections();
+                }}
               >
                 <ExternalLink className="h-3 w-3" />
                 {language === 'ko' ? '길찾기' : 'Directions'}
               </Button>
+            )}
+
+            {/* ★ 외부 링크 액션 버튼 (구매/배달/예약) */}
+            {coupon.status === 'available' && (coupon.purchaseUrl || coupon.orderUrl || coupon.reservationUrl) && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {coupon.purchaseUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1 border-purple-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(coupon.purchaseUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                  >
+                    <ShoppingCart className="h-3 w-3" />
+                    {language === 'ko' ? '구매하기' : 'Purchase'}
+                  </Button>
+                )}
+                {coupon.orderUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1 border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(coupon.orderUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                  >
+                    <Truck className="h-3 w-3" />
+                    {language === 'ko' ? '배달주문' : 'Order'}
+                  </Button>
+                )}
+                {coupon.reservationUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(coupon.reservationUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                  >
+                    <CalendarCheck className="h-3 w-3" />
+                    {language === 'ko' ? '예약하기' : 'Reserve'}
+                  </Button>
+                )}
+              </div>
             )}
 
             {/* Issuer Info Footer */}

@@ -99,10 +99,6 @@ export default function CouponRadiusMap({
   onConfirm,
   inline = false,
 }: CouponRadiusMapProps) {
-  onCenterChange,
-  onClose,
-  onConfirm,
-}: CouponRadiusMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
   const circleRef = useRef<any>(null);
