@@ -125,13 +125,13 @@ export default function CouponCard({
             <div>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm sm:text-base truncate">{coupon.title}</h3>
-                  <p className="text-xs text-muted-foreground">{coupon.brand}</p>
+                  <h3 className="font-semibold text-base sm:text-lg truncate">{coupon.title}</h3>
+                  <p className="text-sm text-muted-foreground">{coupon.brand}</p>
                   {(coupon.storeName || storeName) && (
-                    <p className="text-xs text-blue-500 font-medium">{'\uD83D\uDCCD'} {coupon.storeName || storeName}</p>
+                    <p className="text-sm text-blue-500 font-medium">{'\uD83D\uDCCD'} {coupon.storeName || storeName}</p>
                   )}
                 </div>
-                <Badge className={`${badgeColor} text-white text-[10px] sm:text-xs flex-shrink-0`}>
+                <Badge className={`${badgeColor} text-white text-xs sm:text-sm flex-shrink-0`}>
                   {statusLabels[coupon.status]}
                 </Badge>
               </div>
@@ -145,8 +145,8 @@ export default function CouponCard({
             <div className="flex items-center gap-2 sm:gap-3 mt-2 flex-wrap">
               {/* 거리 표시 */}
               {distance && coupon.status === 'available' && (
-                <div className="flex items-center gap-1 text-xs">
-                  <Navigation className="h-3 w-3 text-primary" />
+                <div className="flex items-center gap-1 text-sm">
+                  <Navigation className="h-4 w-4 text-primary" />
                   <span className={`font-medium ${isNearby ? 'text-green-600' : 'text-muted-foreground'}`}>
                     {distance}
                   </span>
@@ -154,8 +154,8 @@ export default function CouponCard({
               )}
 
               {/* 만료일 */}
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Calendar className="h-4 w-4" />
                 <span className={isExpiringSoon ? 'text-orange-500 font-medium' : ''}>
                   ~{coupon.expiresAt}
                   {isExpiringSoon && (
@@ -185,18 +185,18 @@ export default function CouponCard({
 
             {/* ★ 외부 링크 액션 버튼 (구매/배달/예약) */}
             {coupon.status === 'available' && (coupon.purchaseUrl || coupon.orderUrl || coupon.reservationUrl) && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {coupon.purchaseUrl && (
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs gap-1 border-purple-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950"
+                    className="h-9 sm:h-10 text-sm gap-1.5 border-purple-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950"
                     onClick={(e) => {
                       e.stopPropagation();
                       window.open(coupon.purchaseUrl, '_blank', 'noopener,noreferrer');
                     }}
                   >
-                    <ShoppingCart className="h-3 w-3" />
+                    <ShoppingCart className="h-4 w-4" />
                     {language === 'ko' ? '구매하기' : 'Purchase'}
                   </Button>
                 )}
@@ -204,13 +204,13 @@ export default function CouponCard({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs gap-1 border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                    className="h-9 sm:h-10 text-sm gap-1.5 border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
                     onClick={(e) => {
                       e.stopPropagation();
                       window.open(coupon.orderUrl, '_blank', 'noopener,noreferrer');
                     }}
                   >
-                    <Truck className="h-3 w-3" />
+                    <Truck className="h-4 w-4" />
                     {language === 'ko' ? '배달주문' : 'Order'}
                   </Button>
                 )}
@@ -218,13 +218,13 @@ export default function CouponCard({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-xs gap-1 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                    className="h-9 sm:h-10 text-sm gap-1.5 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
                     onClick={(e) => {
                       e.stopPropagation();
                       window.open(coupon.reservationUrl, '_blank', 'noopener,noreferrer');
                     }}
                   >
-                    <CalendarCheck className="h-3 w-3" />
+                    <CalendarCheck className="h-4 w-4" />
                     {language === 'ko' ? '예약하기' : 'Reserve'}
                   </Button>
                 )}

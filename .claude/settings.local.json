@@ -10,7 +10,8 @@
       "Bash(nul)",
       "Bash(powershell -Command \"Stop-Process -Id 19848 -Force\" 2)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

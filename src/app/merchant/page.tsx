@@ -250,8 +250,8 @@ export default function MerchantHomePage() {
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg">CouponTalkTalk</h1>
-              <p className="text-white/70 text-xs">Business Pro</p>
+              <h1 className="text-white font-bold text-xl sm:text-2xl">구름장터</h1>
+              <p className="text-white/70 text-sm sm:text-base">사장님 전용</p>
             </div>
           </motion.div>
 
